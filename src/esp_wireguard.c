@@ -322,7 +322,7 @@ fail:
     return err;
 }
 
-esp_err_t esp_wireguardif_peer_is_up(wireguard_ctx_t *ctx)
+esp_err_t esp_wireguardif_peer_is_up(const wireguard_ctx_t *ctx)
 {
     esp_err_t err;
     err_t lwip_err;

@@ -131,7 +131,7 @@ esp_err_t esp_wireguard_set_default(wireguard_ctx_t *ctx);
 /**
  * @brief Test if the peer is up.
  */
-esp_err_t esp_wireguardif_peer_is_up(wireguard_ctx_t *ctx);
+esp_err_t esp_wireguardif_peer_is_up(const wireguard_ctx_t *ctx);
 
 /**
  * @brief Get timestamp of the latest handshake (with seconds resolution since unix epoch)

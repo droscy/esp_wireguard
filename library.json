@@ -1,6 +1,6 @@
 {
    "name": "esp_wireguard",
-   "version": "0.0.0-dev4",
+   "version": "0.0.0-dev5",
    "description": "WireGuard implementation for esphome",
    "keywords":[
       "wireguard",

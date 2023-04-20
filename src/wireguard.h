@@ -147,6 +147,9 @@ struct wireguard_peer {
 	// The active handshake that is happening
 	struct wireguard_handshake handshake;
 
+	// The time of the latest completed handshake
+	uint32_t latest_handshake_millis;
+
 	// Decrypted cookie from the responder
 	uint32_t cookie_millis;
 	uint8_t cookie[WIREGUARD_COOKIE_LEN];

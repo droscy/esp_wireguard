@@ -29,15 +29,17 @@
  *
  */
 
+#include "esp_wireguard.h"
+
 #include <assert.h>
 #include <string.h>
 #include <inttypes.h>
+#include <time.h>
 #include <lwip/ip.h>
 #include <lwip/netdb.h>
 #include <lwip/err.h>
 #include <esp_err.h>
 #include <esp_log.h>
-#include <esp_wireguard.h>
 #include <mbedtls/base64.h>
 
 #include "wireguard-platform.h"
@@ -344,3 +346,25 @@ esp_err_t esp_wireguardif_peer_is_up(wireguard_ctx_t *ctx)
 fail:
     return err;
 }
+
+esp_err_t esp_wireguard_latest_handshake(const wireguard_ctx_t *ctx, time_t *result)
+{
+    esp_err_t err;
+
+    if (!ctx) {
+        err = ESP_ERR_INVALID_ARG;
+        goto fail;
+    }
+
+    if (!ctx->netif) {
+        err = ESP_ERR_INVALID_STATE;
+        goto fail;
+    }
+
+    *result = wireguardif_latest_handshake(ctx->netif, wireguard_peer_index);
+    err = (*result > 0) ? ESP_OK : ESP_FAIL;
+
+fail:
+    return err;
+}
+// vim: expandtab tabstop=4

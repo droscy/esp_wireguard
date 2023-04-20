@@ -36,6 +36,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <time.h>
 #include <esp_err.h>
 #include <lwip/netif.h>
 
@@ -131,6 +132,18 @@ esp_err_t esp_wireguard_set_default(wireguard_ctx_t *ctx);
  * @brief Test if the peer is up.
  */
 esp_err_t esp_wireguardif_peer_is_up(wireguard_ctx_t *ctx);
+
+/**
+ * @brief Get timestamp of the latest handshake (with seconds resolution since unix epoch)
+ * @param ctx Context of WireGuard
+ * @param result the output timestamp
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_FAIL if no handshake already completed
+ *      - ESP_ERR_INVALID_ARG if ctx is NULL
+ *      - ESP_ERR_INVALID_STATE if data inside ctx is not valid
+ */
+esp_err_t esp_wireguard_latest_handshake(const wireguard_ctx_t *ctx, time_t *result);
 
 /**
  * @brief Disconnect from the peer

@@ -74,7 +74,6 @@ extern "C" {
 #define REKEY_AFTER_TIME			(120)
 #define REJECT_AFTER_TIME			(180)
 #define REKEY_TIMEOUT				(5)
-#define KEEPALIVE_TIMEOUT			(10)
 
 struct wireguard_keypair {
 	bool valid;

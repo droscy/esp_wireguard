@@ -10,6 +10,8 @@ The branch `trombik/main` will be kept in sync with
 
 The branch `esphome/dev` is my development branch.
 
+The branch `main` is where I push my most "stable" code.
+
 [![Build examples](https://github.com/droscy/esp_wireguard/actions/workflows/build.yml/badge.svg)](https://github.com/droscy/esp_wireguard/actions/workflows/build.yml)
 
 ## Status
@@ -68,25 +70,36 @@ wireguard:
 ```
 
 If you give an `id` to the wireguard component you can manually create
-a binary sensor to check if the peer is online:
+some sensors:
 
 ```yaml
 wireguard:
   id: vpn
   [...]
 
+# a binary sensor to check if the remote peer is online
 binary_sensor:
   - platform: template
-    name: 'Wireguard status'
+    name: 'WireGuard Status'
     device_class: connectivity
     lambda: |-
       return id(vpn).is_peer_up();
+
+# a sensor to retrive the timestamp of the latest handshake
+sensor:
+  - platform: template
+    name: 'WireGuard Latest Handshake'
+    device_class: timestamp
+    lambda: |-
+      static time_t latest_handshake;
+      latest_handshake = id(vpn).get_latest_handshake();
+      return (latest_handshake > 0) ? latest_handshake : NAN;
 ```
 
 For additional information see:
 
 * the original feature-request [esphome/esphome#1444](https://github.com/esphome/feature-requests/issues/1444)
-* my [comment](https://github.com/esphome/feature-requests/issues/1444#issuecomment-1502960116) with detailed description
+  (starting from [my comment](https://github.com/esphome/feature-requests/issues/1444#issuecomment-1502960116))
 * the original component proposed by [@lhoracek](https://github.com/lhoracek) in his PR [esphome/esphome#4256](https://github.com/esphome/esphome/pull/4256)
 
 ## License

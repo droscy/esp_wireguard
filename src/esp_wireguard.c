@@ -81,7 +81,7 @@ static esp_err_t esp_wireguard_peer_init(const wireguard_config_t *config, struc
         int res;
 
         ESP_LOGI(TAG, "using preshared_key");
-        ESP_LOGD(TAG, "preshared_key: %s", config->preshared_key);
+        //ESP_LOGD(TAG, "preshared_key: %s", config->preshared_key);
 #if defined(CONFIG_WIREGUARD_x25519_IMPLEMENTATION_DEFAULT)
         ESP_LOGI(TAG, "X25519: default");
 #elif defined(CONFIG_WIREGUARD_x25519_IMPLEMENTATION_NACL)

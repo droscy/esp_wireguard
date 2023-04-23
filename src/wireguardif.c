@@ -36,6 +36,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <time.h>
 #include <lwip/netif.h>
 #include <lwip/ip.h>
 #include <lwip/udp.h>
@@ -716,6 +717,18 @@ err_t wireguardif_peer_is_up(struct netif *netif, u8_t peer_index, ip_addr_t *cu
 		}
 		if (current_port) {
 			*current_port = peer->port;
+		}
+	}
+	return result;
+}
+
+time_t wireguardif_latest_handshake(struct netif *netif, u8_t peer_index) {
+	time_t result = 0;
+	struct wireguard_peer *peer;
+	err_t err = wireguardif_lookup_peer(netif, peer_index, &peer);
+	if (err == ERR_OK) {
+		if (peer->valid && peer->latest_handshake_millis > 0) {
+			result = peer->latest_handshake_millis / 1000 + (time(NULL) - (wireguard_sys_now() / 1000));
 		}
 	}
 	return result;

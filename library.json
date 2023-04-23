@@ -1,7 +1,7 @@
 {
    "name": "esp_wireguard",
-   "version": "0.0.0-dev4",
-   "description": "WireGuard implementation for esphome",
+   "version": "0.0.0-dev5",
+   "description": "WireGuard implementation for ESPHome",
    "keywords":[
       "wireguard",
       "esp32",
@@ -11,7 +11,7 @@
    "repository":{
       "type": "git",
       "url": "https://github.com/droscy/esp_wireguard",
-      "branch": "esphome/dev"
+      "branch": "main"
    },
    "authors":[
       {

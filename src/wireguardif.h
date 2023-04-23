@@ -38,6 +38,7 @@
 extern "C" {
 #endif
 
+#include <time.h>
 #include "lwip/arch.h"
 #include "lwip/netif.h"
 #include "lwip/ip_addr.h"
@@ -133,6 +134,10 @@ void wireguardif_shutdown(struct netif *netif);
 
 // Is the given peer "up"? A peer is up if it has a valid session key it can communicate with
 err_t wireguardif_peer_is_up(struct netif *netif, u8_t peer_index, ip_addr_t *current_ip, u16_t *current_port);
+
+// Get timestamp of latest handshake (with seconds resolution)
+// Return 0 if no handshake already done or in case of errors
+time_t wireguardif_latest_handshake(struct netif *netif, u8_t peer_index);
 
 #ifdef __cplusplus
 }

@@ -1,10 +1,7 @@
 *.swp
-/examples/*/build
-/examples/*/sdkconfig
-/examples/*/sdkconfig.*
-/examples/*/.vagrant/
 /.cproject
 /.project
 /.settings/
 /lib/
 /build/
+*.tar.gz

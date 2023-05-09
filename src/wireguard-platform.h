@@ -44,11 +44,11 @@ extern "C" {
 #include "esp_err.h"
 
 // Peers are allocated statically inside the device structure to avoid malloc
-#define WIREGUARD_MAX_PEERS CONFIG_WIREGUARD_MAX_PEERS
-#define WIREGUARD_MAX_SRC_IPS CONFIG_WIREGUARD_MAX_SRC_IPS
+#define WIREGUARD_MAX_PEERS (CONFIG_WIREGUARD_MAX_PEERS)
+#define WIREGUARD_MAX_SRC_IPS (CONFIG_WIREGUARD_MAX_SRC_IPS)
 
 // Per device limit on accepting (valid) initiation requests - per peer
-#define MAX_INITIATIONS_PER_SECOND	(CONFIG_MAX_INITIATIONS_PER_SECOND)
+#define MAX_INITIATIONS_PER_SECOND (CONFIG_MAX_INITIATIONS_PER_SECOND)
 
 // Initialize crypto backend (return ESP_OK on success)
 esp_err_t wireguard_platform_init();

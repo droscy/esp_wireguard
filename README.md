@@ -8,11 +8,8 @@ for [ESPHome](https://esphome.io/), based on
 The branch `trombik/main` will be kept in sync with
 [@trombik](https://github.com/trombik)'s `main` branch.
 
-The branch `esphome/dev` is my development branch.
-
 The branch `main` is where I push my most "stable" code.
 
-[![Build examples](https://github.com/droscy/esp_wireguard/actions/workflows/build.yml/badge.svg)](https://github.com/droscy/esp_wireguard/actions/workflows/build.yml)
 
 ## Status
 
@@ -20,36 +17,40 @@ The code is alpha.
 
 A single tunnel to a WireGuard peer has been working.
 
+
 ## Supported boards and frameworks
 
 The code works only on `esp32` boards with both frameworks:
 `esp-idf` and `Arduino`.
 
 The original [@trombik](https://github.com/trombik)'s code was designed
-for `esp-idf` only but it seams to work on `Arduino` too.
+for `esp-idf` only but it seems to work on `Arduino` too.
+
 
 ## Usage
 
 Add the following configuration to your `yaml` file:
 
 ```yaml
-# define wireguard external source
+# Define wireguard external source
 external_components:
   - source:
       type: git
       url: https://github.com/droscy/esphome
-      ref: feature/wireguard/dev
-    components: [ wireguard ]
+      ref: wireguard/main
+    components:
+      - wireguard
+      - wireguard_status
+      - wireguard_handshake
 
-# setup a time source
-# do not use 'homeassistant' platform if Home Assistant is on the remote
+# Setup a time source.
+# Do not use 'homeassistant' platform if Home Assistant is on the remote
 # peer because the time synchronization is a prerequisite to establish
-# the vpn link
+# the vpn link.
 time:
   - platform: sntp
-    id: src_time
 
-# setup wireguard
+# Setup WireGuard
 wireguard:
   address: x.y.z.w
   private_key: !secret wg_privkey
@@ -66,48 +67,51 @@ wireguard:
   peer_preshared_key: !secret wg_peer_shrdkey
 
   # optional keepalive in seconds (disabled by default)
-  peer_persistent_keepalive: 0
+  peer_persistent_keepalive: 25
 ```
 
-If you give an `id` to the wireguard component you can manually create
-some sensors:
+### Sensors
+
+The `wireguard_status` binary sensor can be used to check if remote peer is online:
 
 ```yaml
-wireguard:
-  id: vpn
-  [...]
-
-# a binary sensor to check if the remote peer is online
 binary_sensor:
-  - platform: template
+  - platform: wireguard_status
     name: 'WireGuard Status'
-    device_class: connectivity
-    lambda: |-
-      return id(vpn).is_peer_up();
 
-# a sensor to retrive the timestamp of the latest handshake
-sensor:
-  - platform: template
-    name: 'WireGuard Latest Handshake'
-    device_class: timestamp
-    lambda: |-
-      static time_t latest_handshake;
-      latest_handshake = id(vpn).get_latest_handshake();
-      return (latest_handshake > 0) ? latest_handshake : NAN;
+		# optional (default to 10s)
+    update_interval: 10s
 ```
+
+The `wireguard_handshake` sensor can be used to track the timestamp of the
+latest completed handshake:
+
+```yaml
+sensor:
+  - platform: wireguard_handshake
+    name: 'WireGuard Latest Handshake'
+
+		# optional (default to 60s)
+    update_interval: 60s
+```
+
+
+## References
 
 For additional information see:
 
 * the original feature-request [esphome/esphome#1444](https://github.com/esphome/feature-requests/issues/1444)
   (starting from [my comment](https://github.com/esphome/feature-requests/issues/1444#issuecomment-1502960116))
+
 * the original component proposed by [@lhoracek](https://github.com/lhoracek) in his PR [esphome/esphome#4256](https://github.com/esphome/esphome/pull/4256)
+
 
 ## License
 
-BSD 3-Clause "New" or "Revised" License (SPDX ID: BSD-3-Clause).
-See [LICENSE](LICENSE) for details.
+BSD 3-Clause License (SPDX ID: BSD-3-Clause).
 
-[smult.c](src/nacl/crypto_scalarmult/curve25519/ref/smult.c) file is in Public Domain.
+Except where explicitly written in files themselves or when other license files state differently.
+
 
 ## Authors
 

@@ -1,8 +1,10 @@
 {
    "name": "esp_wireguard",
-   "version": "0.0.0-dev6",
+   "version": "0.1.0",
    "description": "WireGuard implementation for ESPHome",
    "keywords":[
+      "communication",
+      "network",
       "wireguard",
       "vpn"
    ],
@@ -13,6 +15,17 @@
    },
    "authors":[
       {
+         "name": "Simone Rossetto",
+         "email": "simros85@gmail.com",
+         "url": "https://github.com/droscy",
+         "maintainer": true
+      },
+      {
+         "name": "Tomoyuki Sakurai",
+         "email": "y@trombik.org",
+         "url": "https://github.com/trombik"
+      },
+      {
          "name": "Daniel Hope",
          "email": "daniel.hope@smartalock.com",
          "url": "https://github.com/smartalock"
@@ -22,21 +35,10 @@
          "email": "fuga@fugafuga.org"
       },
       {
-         "name": "Tomoyuki Sakurai",
-         "email": "y@trombik.org",
-         "url": "https://github.com/trombik"
-      },
-      {
          "name": "Matthew Dempsky"
       },
       {
          "name": "D. J. Bernstein"
-      },
-      {
-         "name": "Simone Rossetto",
-         "email": "simros85@gmail.com",
-         "url": "https://github.com/droscy",
-         "maintainer": true
       }
    ],
    "license": "BSD-3-Clause",

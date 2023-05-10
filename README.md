@@ -10,6 +10,8 @@ The branch `trombik/main` will be kept in sync with
 
 The branch `main` is where I push my most "stable" code.
 
+[![PlatformIO Registry](https://badges.registry.platformio.org/packages/droscy/library/esp_wireguard.svg)](https://registry.platformio.org/libraries/droscy/esp_wireguard)
+
 
 ## Status
 
@@ -79,7 +81,7 @@ binary_sensor:
   - platform: wireguard_status
     name: 'WireGuard Status'
 
-		# optional (default to 10s)
+    # optional (default to 10s)
     update_interval: 10s
 ```
 
@@ -91,7 +93,7 @@ sensor:
   - platform: wireguard_handshake
     name: 'WireGuard Latest Handshake'
 
-		# optional (default to 60s)
+    # optional (default to 60s)
     update_interval: 60s
 ```
 
@@ -115,9 +117,9 @@ Except where explicitly written in files themselves or when other license files 
 
 ## Authors
 
+* Simone Rossetto (simros85@gmail.com)
+* Tomoyuki Sakurai (y@trombik.org)
 * Daniel Hope (daniel.hope@smartalock.com)
 * Kenta Ida (fuga@fugafuga.org)
 * Matthew Dempsky
 * D. J. Bernstein
-* Tomoyuki Sakurai (y@trombik.org)
-* Simone Rossetto (simros85@gmail.com)

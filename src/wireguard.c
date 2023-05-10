@@ -37,10 +37,12 @@
 #include <string.h>
 #include <limits.h>
 
+#include "esp_log.h"
 #include "crypto.h"
-#include <esp_log.h>
 
+// For logging purpose
 #define TAG "wireguard"
+
 // For HMAC calculation
 #define WIREGUARD_BLAKE2S_BLOCK_SIZE (64)
 
@@ -58,6 +60,7 @@ static const uint8_t zero_key[WIREGUARD_PUBLIC_KEY_LEN] = { 0 };
 // Calculated in wireguard_init
 static uint8_t construction_hash[WIREGUARD_HASH_LEN];
 static uint8_t identifier_hash[WIREGUARD_HASH_LEN];
+
 
 void wireguard_init() {
 	wireguard_blake2s_ctx ctx;

@@ -1,12 +1,12 @@
 {
    "name": "esp_wireguard",
-   "version": "0.0.0-dev5",
+   "version": "0.1.0",
    "description": "WireGuard implementation for ESPHome",
    "keywords":[
+      "communication",
+      "network",
       "wireguard",
-      "esp32",
-      "esphome",
-      "espidf"
+      "vpn"
    ],
    "repository":{
       "type": "git",
@@ -14,6 +14,17 @@
       "branch": "main"
    },
    "authors":[
+      {
+         "name": "Simone Rossetto",
+         "email": "simros85@gmail.com",
+         "url": "https://github.com/droscy",
+         "maintainer": true
+      },
+      {
+         "name": "Tomoyuki Sakurai",
+         "email": "y@trombik.org",
+         "url": "https://github.com/trombik"
+      },
       {
          "name": "Daniel Hope",
          "email": "daniel.hope@smartalock.com",
@@ -24,41 +35,33 @@
          "email": "fuga@fugafuga.org"
       },
       {
-         "name": "Tomoyuki Sakurai",
-         "email": "y@trombik.org",
-         "url": "https://github.com/trombik"
-      },
-      {
          "name": "Matthew Dempsky"
       },
       {
          "name": "D. J. Bernstein"
-      },
-      {
-         "name": "Simone Rossetto",
-         "email": "simros85@gmail.com",
-         "maintainer": true
       }
    ],
    "license": "BSD-3-Clause",
    "frameworks":[
-      "esp8266-rtos-sdk",
       "espidf",
       "arduino"
    ],
-   "include":[
-      "include/*",
-      "src/*"
+   "headers":[
+      "esp_wireguard.h"
    ],
+	 "export":{
+      "include":[
+         "include/*",
+         "src/*"
+      ]
+	 },
    "build":{
       "includeDir": "include",
       "srcDir": "src",
       "flags": [
-         "-DCONFIG_WIREGUARD_ESP_NETIF",
          "-DCONFIG_WIREGUARD_MAX_PEERS=1",
-         "-DCONFIG_WIREGUARD_MAX_SRC_IPS=2",
-         "-DCONFIG_MAX_INITIATIONS_PER_SECOND=2",
-         "-DCONFIG_WIREGUARD_x25519_IMPLEMENTATION_DEFAULT"
+         "-DCONFIG_WIREGUARD_MAX_SRC_IPS=1",
+         "-DCONFIG_MAX_INITIATIONS_PER_SECOND=2"
       ]
    }
 }

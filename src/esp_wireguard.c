@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2022 Tomoyuki Sakurai <y@trombik.org>
+ * Copyright (c) 2023 Simone Rossetto <simros85@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -49,6 +50,7 @@
 #define TAG "esp_wireguard"
 #define WG_KEY_LEN  (32)
 #define WG_B64_KEY_LEN (4 * ((WG_KEY_LEN + 2) / 3))
+
 #if defined(CONFIG_LWIP_IPV6)
 #define WG_ADDRSTRLEN  INET6_ADDRSTRLEN
 #else
@@ -98,7 +100,7 @@ static esp_err_t esp_wireguard_peer_init(const wireguard_config_t *config, struc
     }
     peer->keep_alive = config->persistent_keepalive;
 
-    /* Allow source address/netmask through tunnel */
+    /* Allow device address/netmask through tunnel */
     {
         if(ipaddr_aton(config->allowed_ip, &(peer->allowed_ip)) != 1) {
             ESP_LOGE(TAG, "peer_init: invalid allowed_ip: `%s`", config->allowed_ip);
@@ -173,8 +175,6 @@ static esp_err_t esp_wireguard_netif_create(const wireguard_config_t *config)
     wg.listen_port = config->listen_port;
     wg.bind_netif = NULL;
 
-    //ESP_LOGI(TAG, "allowed_ip: %s", config->allowed_ip);
-
     if (ipaddr_aton(config->allowed_ip, &ip_addr) != 1) {
         ESP_LOGE(TAG, "netif_create: invalid allowed_ip: `%s`", config->allowed_ip);
         err = ESP_ERR_INVALID_ARG;
@@ -185,6 +185,8 @@ static esp_err_t esp_wireguard_netif_create(const wireguard_config_t *config)
         err = ESP_ERR_INVALID_ARG;
         goto fail;
     }
+
+    ESP_LOGI(TAG, "default allowed_ip: %s/%s", config->allowed_ip, config->allowed_ip_mask);
 
     /* Register the new WireGuard network interface with lwIP */
     wg_netif = netif_add(
@@ -366,6 +368,44 @@ esp_err_t esp_wireguard_latest_handshake(const wireguard_ctx_t *ctx, time_t *res
 
     *result = wireguardif_latest_handshake(ctx->netif, wireguard_peer_index);
     err = (*result > 0) ? ESP_OK : ESP_FAIL;
+
+fail:
+    return err;
+}
+
+esp_err_t esp_wireguard_add_allowed_ip(const wireguard_ctx_t *ctx, const char *allowed_ip, const char *allowed_ip_mask)
+{
+    esp_err_t err;
+    err_t lwip_err;
+
+    ip_addr_t ip_addr;
+    ip_addr_t netmask;
+
+    if (!ctx || !allowed_ip || !allowed_ip_mask) {
+        err = ESP_ERR_INVALID_ARG;
+        goto fail;
+    }
+
+    if (!ctx->netif) {
+        err = ESP_ERR_INVALID_STATE;
+        goto fail;
+    }
+
+    if (ipaddr_aton(allowed_ip, &ip_addr) != 1) {
+        ESP_LOGE(TAG, "add_allowed_ip: invalid allowed_ip: `%s`", allowed_ip);
+        err = ESP_ERR_INVALID_ARG;
+        goto fail;
+    }
+
+    if (ipaddr_aton(allowed_ip_mask, &netmask) != 1) {
+        ESP_LOGE(TAG, "add_allowed_ip: invalid allowed_ip_mask: `%s`", allowed_ip_mask);
+        err = ESP_ERR_INVALID_ARG;
+        goto fail;
+    }
+
+    ESP_LOGI(TAG, "add allowed_ip: %s/%s", allowed_ip, allowed_ip_mask);
+    lwip_err = wireguardif_add_allowed_ip(ctx->netif, wireguard_peer_index, ip_addr, netmask);
+    err = (lwip_err == ERR_OK ? ESP_OK : ESP_FAIL);
 
 fail:
     return err;

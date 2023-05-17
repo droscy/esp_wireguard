@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2021 Daniel Hope (www.floorsense.nz)
  * Copyright (c) 2021 Kenta Ida (fuga@fugafuga.org)
+ * Copyright (c) 2023 Simone Rossetto <simros85@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -726,6 +727,19 @@ time_t wireguardif_latest_handshake(struct netif *netif, u8_t peer_index) {
 	if (err == ERR_OK) {
 		if (peer->valid && peer->latest_handshake_millis > 0) {
 			result = peer->latest_handshake_millis / 1000 + (time(NULL) - (wireguard_sys_now() / 1000));
+		}
+	}
+	return result;
+}
+
+err_t wireguardif_add_allowed_ip(struct netif *netif, u8_t peer_index, ip_addr_t ip, ip_addr_t mask) {
+	struct wireguard_peer *peer;
+	err_t result = wireguardif_lookup_peer(netif, peer_index, &peer);
+	if (result == ERR_OK) {
+		if(peer_add_ip(peer, ip, mask)) {
+			result = ERR_OK;
+		} else {
+			result = ERR_MEM;
 		}
 	}
 	return result;

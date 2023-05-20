@@ -31,7 +31,7 @@ for `esp-idf` only but it seems to work on `Arduino` too.
 
 ## Usage
 
-Add the following configuration to your `yaml` file:
+Add the following configuration to your ESPHome `yaml` file:
 
 ```yaml
 # Define wireguard external source
@@ -55,9 +55,9 @@ time:
 # Setup WireGuard
 wireguard:
   address: x.y.z.w
-  private_key: !secret wg_privkey
+  private_key: private_key=
   peer_endpoint: wg.server.example
-  peer_public_key: !secret wg_peer_pubkey
+  peer_public_key: public_key=
 
   # optional netmask (this is the default if omitted)
   netmask: 255.255.255.255
@@ -66,10 +66,19 @@ wireguard:
   peer_port: 51820
 
   # optional pre-shared key
-  peer_preshared_key: !secret wg_peer_shrdkey
+  peer_preshared_key: shared_key=
 
   # optional keepalive in seconds (disabled by default)
   peer_persistent_keepalive: 25
+
+  # optional list of allowed ip/mask (the default is to allow any host if omitted)
+  peer_allowed_ips:
+    - x.y.z.0/24
+    - l.m.n.o/32  # the /32 can be omitted for single host
+    - [...]
+
+  # reboot the board if remote peer in unreachable (default to 15min, set to 0s to disable)
+  reboot_timeout: 15min
 ```
 
 ### Sensors

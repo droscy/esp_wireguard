@@ -1,6 +1,6 @@
 {
    "name": "esp_wireguard",
-   "version": "0.1.0",
+   "version": "0.2.0",
    "description": "WireGuard implementation for ESPHome",
    "keywords":[
       "communication",
@@ -57,11 +57,6 @@
 	 },
    "build":{
       "includeDir": "include",
-      "srcDir": "src",
-      "flags": [
-         "-DCONFIG_WIREGUARD_MAX_PEERS=1",
-         "-DCONFIG_WIREGUARD_MAX_SRC_IPS=1",
-         "-DCONFIG_MAX_INITIATIONS_PER_SECOND=2"
-      ]
+      "srcDir": "src"
    }
 }

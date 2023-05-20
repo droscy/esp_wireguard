@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2022 Tomoyuki Sakurai <y@trombik.org>
+ * Copyright (c) 2023 Simone Rossetto <simros85@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -144,6 +145,19 @@ esp_err_t esp_wireguardif_peer_is_up(const wireguard_ctx_t *ctx);
  *      - ESP_ERR_INVALID_STATE if data inside ctx is not valid
  */
 esp_err_t esp_wireguard_latest_handshake(const wireguard_ctx_t *ctx, time_t *result);
+
+/**
+ * @brief Add new allowed IP/mask to the list of allowed ip/mask
+ * @param ctx Context of WireGuard
+ * @param allowed_ip The new IP to be allowed through tunnel
+ * @param allowed_ip_mask The mask of the new IP
+ * @return
+ *      - ESP_OK on success
+ *      - ESP_FAIL if the adding failed
+ *      - ESP_ERR_INVALID_ARG if ctx, allowed_ip or allowed_ip_mask are invalid or empty
+ *      - ESP_ERR_INVALID_STATE if data inside ctx is not valid
+ */
+esp_err_t esp_wireguard_add_allowed_ip(const wireguard_ctx_t *ctx, const char *allowed_ip, const char *allowed_ip_mask);
 
 /**
  * @brief Disconnect from the peer

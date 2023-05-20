@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021 Daniel Hope (www.floorsense.nz)
+ * Copyright (c) 2023 Simone Rossetto <simros85@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -138,6 +139,9 @@ err_t wireguardif_peer_is_up(struct netif *netif, u8_t peer_index, ip_addr_t *cu
 // Get timestamp of latest handshake (with seconds resolution)
 // Return 0 if no handshake already done or in case of errors
 time_t wireguardif_latest_handshake(struct netif *netif, u8_t peer_index);
+
+// Add ip/mask to the list of allowed ips of the given peer
+err_t wireguardif_add_allowed_ip(struct netif *netif, u8_t peer_index, ip_addr_t ip, ip_addr_t mask);
 
 #ifdef __cplusplus
 }

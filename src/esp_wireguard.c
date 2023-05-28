@@ -283,14 +283,35 @@ fail:
     return err;
 }
 
-esp_err_t esp_wireguard_set_default(wireguard_ctx_t *ctx)
+esp_err_t esp_wireguard_set_default(const wireguard_ctx_t *ctx)
 {
     esp_err_t err;
     if (!ctx) {
         err = ESP_ERR_INVALID_ARG;
         goto fail;
     }
+    if(!ctx->netif) {
+        err = ESP_ERR_INVALID_STATE;
+        goto fail;
+    }
     netif_set_default(ctx->netif);
+    err = ESP_OK;
+fail:
+    return err;
+}
+
+esp_err_t esp_wireguard_restore_default(const wireguard_ctx_t *ctx)
+{
+    esp_err_t err;
+    if (!ctx) {
+        err = ESP_ERR_INVALID_ARG;
+        goto fail;
+    }
+    if(!ctx->netif_default) {
+        err = ESP_ERR_INVALID_STATE;
+        goto fail;
+    }
+    netif_set_default(ctx->netif_default);
     err = ESP_OK;
 fail:
     return err;

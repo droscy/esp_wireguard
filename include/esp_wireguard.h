@@ -122,12 +122,24 @@ esp_err_t esp_wireguard_init(wireguard_config_t *config, wireguard_ctx_t *ctx);
 esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx);
 
 /**
- * @brief Set the default gateway to the peer.
+ * @brief Set the WireGuard network interface as the default.
  * @param ctx Context of WireGuard
  * @return
  *      - ESP_OK on success.
+ *      - ESP_ERR_INVALID_ARG if ctx is NULL
+ *      - ESP_ERR_INVALID_STATE if WireGuard interface is NULL
  */
-esp_err_t esp_wireguard_set_default(wireguard_ctx_t *ctx);
+esp_err_t esp_wireguard_set_default(const wireguard_ctx_t *ctx);
+
+/**
+ * @brief Restore the default network interface.
+ * @param ctx Context of WireGuard
+ * @return
+ *      - ESP_OK on success.
+ *      - ESP_ERR_INVALID_ARG if ctx is NULL
+ *      - ESP_ERR_INVALID_STATE if the previous default interface is NULL
+ */
+esp_err_t esp_wireguard_restore_default(const wireguard_ctx_t *ctx);
 
 /**
  * @brief Test if the peer is up.

@@ -102,14 +102,14 @@ static esp_err_t esp_wireguard_peer_init(const wireguard_config_t *config, struc
 
     /* Allow device address/netmask through tunnel */
     {
-        if(ipaddr_aton(config->allowed_ip, &(peer->allowed_ip)) != 1) {
-            ESP_LOGE(TAG, "peer_init: invalid allowed_ip: `%s`", config->allowed_ip);
+        if(ipaddr_aton(config->address, &(peer->allowed_ip)) != 1) {
+            ESP_LOGE(TAG, "peer_init: invalid address: `%s`", config->address);
             err = ESP_ERR_INVALID_ARG;
             goto fail;
         }
 
-        if(ipaddr_aton(config->allowed_ip_mask, &(peer->allowed_mask)) != 1) {
-            ESP_LOGE(TAG, "peer_init: invalid allowed_ip_mask: `%s`", config->allowed_ip_mask);
+        if(ipaddr_aton(config->netmask, &(peer->allowed_mask)) != 1) {
+            ESP_LOGE(TAG, "peer_init: invalid netmask: `%s`", config->netmask);
             err = ESP_ERR_INVALID_ARG;
             goto fail;
         }
@@ -175,18 +175,16 @@ static esp_err_t esp_wireguard_netif_create(const wireguard_config_t *config)
     wg.listen_port = config->listen_port;
     wg.bind_netif = NULL;
 
-    if (ipaddr_aton(config->allowed_ip, &ip_addr) != 1) {
-        ESP_LOGE(TAG, "netif_create: invalid allowed_ip: `%s`", config->allowed_ip);
+    if (ipaddr_aton(config->address, &ip_addr) != 1) {
+        ESP_LOGE(TAG, "netif_create: invalid address: `%s`", config->address);
         err = ESP_ERR_INVALID_ARG;
         goto fail;
     }
-    if (ipaddr_aton(config->allowed_ip_mask, &netmask) != 1) {
-        ESP_LOGE(TAG, "netif_create: invalid allowed_ip_mask: `%s`", config->allowed_ip_mask);
+    if (ipaddr_aton(config->netmask, &netmask) != 1) {
+        ESP_LOGE(TAG, "netif_create: invalid netmask: `%s`", config->netmask);
         err = ESP_ERR_INVALID_ARG;
         goto fail;
     }
-
-    ESP_LOGI(TAG, "default allowed_ip: %s/%s", config->allowed_ip, config->allowed_ip_mask);
 
     /* Register the new WireGuard network interface with lwIP */
     wg_netif = netif_add(

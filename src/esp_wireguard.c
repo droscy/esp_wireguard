@@ -100,7 +100,7 @@ static esp_err_t esp_wireguard_peer_init(const wireguard_config_t *config, struc
     }
     peer->keep_alive = config->persistent_keepalive;
 
-    /* Allow device address/netmask through tunnel */
+    /* Allow device's own address through tunnel */
     {
         if(ipaddr_aton(config->address, &(peer->allowed_ip)) != 1) {
             ESP_LOGE(TAG, "peer_init: invalid address: `%s`", config->address);
@@ -108,12 +108,13 @@ static esp_err_t esp_wireguard_peer_init(const wireguard_config_t *config, struc
             goto fail;
         }
 
-        if(ipaddr_aton(config->netmask, &(peer->allowed_mask)) != 1) {
-            ESP_LOGE(TAG, "peer_init: invalid netmask: `%s`", config->netmask);
-            err = ESP_ERR_INVALID_ARG;
-            goto fail;
-        }
+        // Only the single IP is allowed, thus /32 netmask, leaving to the user
+        // the responsibility to set the appropriate list of other allowed IPs.
+        ip_addr_t allowed_mask = IPADDR4_INIT_BYTES(255, 255, 255, 255);
+        peer->allowed_mask = allowed_mask;
     }
+
+    ESP_LOGI(TAG, "default allowed_ip: %s/%s", config->address, ipaddr_ntoa(&(peer->allowed_mask)));
 
     /* resolve peer name or IP address */
     {

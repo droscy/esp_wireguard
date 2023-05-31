@@ -1,6 +1,6 @@
 {
    "name": "esp_wireguard",
-   "version": "0.2.0",
+   "version": "0.2.1-beta1",
    "description": "WireGuard implementation for ESPHome",
    "keywords":[
       "communication",
@@ -49,7 +49,7 @@
    "headers":[
       "esp_wireguard.h"
    ],
-	 "export":{
+   "export":{
       "include":[
          "include/*",
          "src/*"

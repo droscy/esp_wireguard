@@ -69,7 +69,7 @@ wireguard:
   peer_preshared_key: shared_key=
 
   # optional keepalive in seconds (disabled by default)
-  peer_persistent_keepalive: 25
+  peer_persistent_keepalive: 25s
 
   # optional list of allowed ip/mask (the default is to allow any host if omitted)
   peer_allowed_ips:
@@ -112,9 +112,12 @@ sensor:
 For additional information see:
 
 * the original feature-request [esphome/esphome#1444](https://github.com/esphome/feature-requests/issues/1444)
-  (starting from [my comment](https://github.com/esphome/feature-requests/issues/1444#issuecomment-1502960116))
+  (starting from [this comment](https://github.com/esphome/feature-requests/issues/1444#issuecomment-1556090095))
 
 * the original component proposed by [@lhoracek](https://github.com/lhoracek) in his PR [esphome/esphome#4256](https://github.com/esphome/esphome/pull/4256)
+
+* the proposed documentation [esphome/esphome-docs#2948](https://github.com/esphome/esphome-docs/pull/2948), here
+  you can find the link to preview the latest version
 
 
 ## License

@@ -476,7 +476,7 @@ static void add_new_keypair(struct wireguard_peer *peer, struct wireguard_keypai
 		peer->next_keypair =  new_keypair;
 		keypair_destroy(&peer->prev_keypair);
 	}
-	peer->latest_handshake_millis = peer->curr_keypair.keypair_millis;
+	peer->latest_handshake_millis = new_keypair.keypair_millis;
 }
 
 void wireguard_start_session(struct wireguard_peer *peer, bool initiator) {

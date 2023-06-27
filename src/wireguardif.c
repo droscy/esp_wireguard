@@ -726,7 +726,15 @@ time_t wireguardif_latest_handshake(struct netif *netif, u8_t peer_index) {
 	err_t err = wireguardif_lookup_peer(netif, peer_index, &peer);
 	if (err == ERR_OK) {
 		if (peer->valid && peer->latest_handshake_millis > 0) {
-			result = peer->latest_handshake_millis / 1000 + (time(NULL) - (wireguard_sys_now() / 1000));
+			/*
+			 * The time() function returns the current timestamp (seconds since epoch),
+			 * the wireguard_sys_now() function returns milliseconds since device boot up,
+			 * so their difference is the timestamp (since epoch) of device boot time,
+			 * so the latest handshake (saved executing wireguard_sys_now) plus timestamp
+			 * of device boot time is the timestamp (since epoch)of the latest
+			 * completed handshake. With ~1 second precision.
+			 */
+			result = (peer->latest_handshake_millis / 1000) + (time(NULL) - (wireguard_sys_now() / 1000));
 		}
 	}
 	return result;

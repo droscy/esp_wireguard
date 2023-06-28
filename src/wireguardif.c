@@ -930,7 +930,7 @@ static void wireguardif_tmr(void *arg) {
 
 err_t wireguardif_init(struct netif *netif) {
 	err_t result;
-	esp_err_t err;
+	esp_err_t err = ESP_FAIL;
 	struct wireguardif_init_data *init_data;
 	struct wireguard_device *device;
 	struct udp_pcb *udp;
@@ -946,7 +946,7 @@ err_t wireguardif_init(struct netif *netif) {
 	const char* ifkey = NULL;
 
 	ESP_LOGD(TAG, "Looking for available network interface");
-	for (int i = 0, err = ESP_FAIL; i < sizeof(ifkeys) / sizeof(char *) && err != ESP_OK; i++) {
+	for (int i = 0; i < sizeof(ifkeys) / sizeof(char *) && err != ESP_OK; i++) {
 		ifkey = ifkeys[i];
 		err = esp_netif_get_netif_impl_name(esp_netif_get_handle_from_ifkey(ifkey), lwip_netif_name);
 	}

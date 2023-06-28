@@ -144,7 +144,7 @@ static esp_err_t esp_wireguard_peer_init(const wireguard_config_t *config, struc
         if (inet_ntop(res->ai_family, &(peer->endpoint_ip), addr_str, WG_ADDRSTRLEN) == NULL) {
             ESP_LOGW(TAG, "inet_ntop: %i", errno);
         } else {
-            ESP_LOGI(TAG, "Peer: %s (%s:%i)",
+            ESP_LOGI(TAG, "peer endpoint: %s (%s), port: %i",
                                             config->endpoint,
                                             addr_str,
                                             config->port);
@@ -270,7 +270,7 @@ esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx)
             goto fail;
         }
 
-    ESP_LOGI(TAG, "Connecting to %s:%i", ctx->config->endpoint, ctx->config->port);
+    ESP_LOGI(TAG, "connecting to %s:%i", ctx->config->endpoint, ctx->config->port);
     lwip_err = wireguardif_connect(ctx->netif, wireguard_peer_index);
     if (lwip_err != ERR_OK) {
         ESP_LOGE(TAG, "wireguardif_connect: %i", lwip_err);

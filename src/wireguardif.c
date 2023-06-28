@@ -659,9 +659,11 @@ static err_t wireguardif_lookup_peer(struct netif *netif, u8_t peer_index, struc
 		if (peer) {
 			result = ERR_OK;
 		} else {
+			ESP_LOGD(TAG, "peer_lookup_by_peer_index: peer not found");
 			result = ERR_ARG;
 		}
 	} else {
+		ESP_LOGD(TAG, "wireguardif_lookup_peer: invalid device");
 		result = ERR_ARG;
 	}
 	*out = peer;
@@ -708,6 +710,7 @@ err_t wireguardif_peer_is_up(struct netif *netif, u8_t peer_index, ip_addr_t *cu
 		if ((peer->curr_keypair.valid) || (peer->prev_keypair.valid)) {
 			result = ERR_OK;
 		} else {
+			ESP_LOGD(TAG, "wireguardif_peer_is_up: invalid keypairs");
 			result = ERR_CONN;
 		}
 		if (current_ip) {
@@ -735,6 +738,8 @@ time_t wireguardif_latest_handshake(struct netif *netif, u8_t peer_index) {
 			 * completed handshake. With ~1 second precision.
 			 */
 			result = (peer->latest_handshake_millis / 1000) + (time(NULL) - (wireguard_sys_now() / 1000));
+		} else {
+			ESP_LOGD(TAG, "wireguardif_latest_handshake: valid=%d, lhs=%d", (int) peer->valid, peer->latest_handshake_millis);
 		}
 	}
 	return result;
@@ -823,7 +828,7 @@ err_t wireguardif_add_peer(struct netif *netif, struct wireguardif_peer *p, u8_t
 	}
 
 	uint32_t t2 = wireguard_sys_now();
-	ESP_LOGD(TAG, "Adding peer took %" PRIu32 "ms", (t2-t1));
+	ESP_LOGV(TAG, "peer adding took %" PRIu32 "ms", (t2-t1));
 
 	if (peer_index) {
 		if (peer) {
@@ -939,30 +944,33 @@ err_t wireguardif_init(struct netif *netif) {
 
 	struct netif* underlying_netif = NULL;
 	char lwip_netif_name[8] = {0,};
-	// list of interfaces to try to bind wireguard to:
+
+	// list of interfaces to try to bind wireguard to
 	const char* ifkeys[2] = {"WIFI_STA_DEF", "ETH_DEF"};
 	
 	// ifkey will contain the selected interface key
 	const char* ifkey = NULL;
 
-	ESP_LOGD(TAG, "Looking for available network interface");
+	ESP_LOGD(TAG, "looking for available network interface");
 	for (int i = 0; i < sizeof(ifkeys) / sizeof(char *) && err != ESP_OK; i++) {
 		ifkey = ifkeys[i];
 		err = esp_netif_get_netif_impl_name(esp_netif_get_handle_from_ifkey(ifkey), lwip_netif_name);
+		ESP_LOGV(TAG, "esp_netif_get_netif_impl_name(%s): %s", ifkey, esp_err_to_name(err));
 	}
 	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "could not find a network interface. esp_netif_get_netif_impl_name: %s", esp_err_to_name(err));
-		result = ERR_IF;
-		goto fail;
-	}
-	underlying_netif = netif_find(lwip_netif_name);
-	if (underlying_netif == NULL) {
-		ESP_LOGE(TAG, "netif_find: cannot find %s", ifkey);
+		ESP_LOGE(TAG, "could not find an available network interface");
 		result = ERR_IF;
 		goto fail;
 	}
 
-	ESP_LOGD(TAG, "underlying_netif = %p", underlying_netif);
+	underlying_netif = netif_find(lwip_netif_name);
+	if (underlying_netif == NULL) {
+		ESP_LOGE(TAG, "netif_find: cannot find %s (%s)", ifkey, lwip_netif_name);
+		result = ERR_IF;
+		goto fail;
+	}
+
+	ESP_LOGV(TAG, "underlying_netif = %p", underlying_netif);
 
 	LWIP_ASSERT("netif != NULL", (netif != NULL));
 	LWIP_ASSERT("state != NULL", (netif->state != NULL));
@@ -997,7 +1005,7 @@ err_t wireguardif_init(struct netif *netif) {
 						uint32_t t1 = wireguard_sys_now();
 						if (wireguard_device_init(device, private_key)) {
 							uint32_t t2 = wireguard_sys_now();
-							ESP_LOGD(TAG, "Device init took %" PRIi32 "ms", (t2-t1));
+							ESP_LOGV(TAG, "device init took %" PRIi32 "ms", (t2-t1));
 
 #if LWIP_CHECKSUM_CTRL_PER_NETIF
 							NETIF_SET_CHECKSUM_CTRL(netif, NETIF_CHECKSUM_ENABLE_ALL);

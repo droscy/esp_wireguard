@@ -40,7 +40,7 @@ For additional information see:
 
 * the documentation PR [esphome/esphome-docs#2948](https://github.com/esphome/esphome-docs/pull/2948)
 
-* the original feature-request [esphome/esphome#1444](https://github.com/esphome/feature-requests/issues/1444)
+* the original feature-request [esphome/feature-requests#1444](https://github.com/esphome/feature-requests/issues/1444)
 
 
 ## License

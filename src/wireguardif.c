@@ -939,16 +939,25 @@ err_t wireguardif_init(struct netif *netif) {
 
 	struct netif* underlying_netif = NULL;
 	char lwip_netif_name[8] = {0,};
+	// list of interfaces to try to bind wireguard to:
+	const char* ifkeys[2] = {"WIFI_STA_DEF", "ETH_DEF"};
+	
+	// ifkey will contain the selected interface key
+	const char* ifkey = NULL;
 
-	err = esp_netif_get_netif_impl_name(esp_netif_get_handle_from_ifkey("WIFI_STA_DEF"), lwip_netif_name);
+	ESP_LOGD(TAG, "Looking for available network interface");
+	for (int i = 0, err = ESP_FAIL; i < sizeof(ifkeys) / sizeof(char *) && err != ESP_OK; i++) {
+		ifkey = ifkeys[i];
+		err = esp_netif_get_netif_impl_name(esp_netif_get_handle_from_ifkey(ifkey), lwip_netif_name);
+	}
 	if (err != ESP_OK) {
-		ESP_LOGE(TAG, "esp_netif_get_netif_impl_name: %s", esp_err_to_name(err));
+		ESP_LOGE(TAG, "could not find a network interface. esp_netif_get_netif_impl_name: %s", esp_err_to_name(err));
 		result = ERR_IF;
 		goto fail;
 	}
 	underlying_netif = netif_find(lwip_netif_name);
 	if (underlying_netif == NULL) {
-		ESP_LOGE(TAG, "netif_find: cannot find WIFI_STA_DEF");
+		ESP_LOGE(TAG, "netif_find: cannot find %s", ifkey);
 		result = ERR_IF;
 		goto fail;
 	}

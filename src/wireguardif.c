@@ -947,7 +947,7 @@ err_t wireguardif_init(struct netif *netif) {
 
 	// list of interfaces to try to bind wireguard to
 	const char* ifkeys[2] = {"WIFI_STA_DEF", "ETH_DEF"};
-	
+
 	// ifkey will contain the selected interface key
 	const char* ifkey = NULL;
 

@@ -1,6 +1,6 @@
 {
    "name": "esp_wireguard",
-   "version": "0.3.2-beta1",
+   "version": "0.3.2-beta2",
    "description": "WireGuard implementation for ESPHome",
    "keywords":[
       "communication",

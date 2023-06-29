@@ -20,11 +20,15 @@ Add the following snippet to your ESPHome `yaml` file:
 
 ```yaml
 external_components:
-  - source:
-      type: git
-      url: https://github.com/droscy/esphome
-      ref: wireguard/main
+  - source: github://pr#4256
     components: [wireguard]
+
+  # or use my repo with code possibly not yet merged in official PR
+  #- source:
+  #    type: git
+  #    url: https://github.com/droscy/esphome
+  #    ref: wireguard/main
+  #  components: [wireguard]
 ```
 
 and then read the [preview](https://deploy-preview-2948--esphome.netlify.app/components/wireguard.html)

@@ -41,6 +41,7 @@
 #include "lwip/netdb.h"
 #include "lwip/err.h"
 #include "esp_err.h"
+#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include "esp_log.h"
 #include "mbedtls/base64.h"
 

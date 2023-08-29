@@ -46,6 +46,7 @@
 #include "lwip/mem.h"
 #include "lwip/sys.h"
 #include "lwip/timeouts.h"
+#define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
 #include "esp_log.h"
 #include "esp_err.h"
 #include "esp_netif.h"

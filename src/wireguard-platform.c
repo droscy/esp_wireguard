@@ -8,9 +8,9 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 #include "esp_system.h"
-#include "esp_err.h"
-#include "esp_log.h"
 
+#include "esp_wireguard_err.h"
+#include "esp_wireguard_log.h"
 #include "crypto.h"
 
 #define ENTROPY_MINIMUM_REQUIRED_THRESHOLD	(134)

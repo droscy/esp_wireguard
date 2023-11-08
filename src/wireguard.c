@@ -37,7 +37,7 @@
 #include <string.h>
 #include <limits.h>
 
-#include "esp_log.h"
+#include "esp_wireguard_log.h"
 #include "crypto.h"
 
 // For logging purpose

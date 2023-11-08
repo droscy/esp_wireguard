@@ -38,7 +38,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <time.h>
-#include <sys/socket.h>
+//#include <sys/socket.h>
 
 #include "lwip/netif.h"
 #include "lwip/ip.h"
@@ -46,8 +46,8 @@
 #include "lwip/mem.h"
 #include "lwip/sys.h"
 #include "lwip/timeouts.h"
-#include "esp_log.h"
-#include "esp_err.h"
+#include "esp_wireguard_log.h"
+#include "esp_wireguard_err.h"
 #include "esp_netif.h"
 
 #include "wireguard.h"

@@ -37,11 +37,13 @@
 #include <inttypes.h>
 #include <time.h>
 
+#include "lwip/inet.h"
+#include "lwip/sockets.h"
 #include "lwip/ip.h"
 #include "lwip/netdb.h"
 #include "lwip/err.h"
-#include "esp_err.h"
-#include "esp_log.h"
+#include "esp_wireguard_err.h"
+#include "esp_wireguard_log.h"
 #include "mbedtls/base64.h"
 
 #include "wireguard-platform.h"

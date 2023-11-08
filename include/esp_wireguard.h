@@ -38,8 +38,8 @@ extern "C" {
 
 #include <stdint.h>
 #include <time.h>
-#include <esp_err.h>
 #include <lwip/netif.h>
+#include "esp_wireguard_err.h"
 
 #define ESP_WIREGUARD_CONFIG_DEFAULT() { \
     .private_key = NULL, \

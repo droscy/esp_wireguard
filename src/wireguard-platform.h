@@ -41,7 +41,7 @@ extern "C" {
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "esp_err.h"
+#include "esp_wireguard_err.h"
 
 // Peers are allocated statically inside the device structure to avoid malloc
 #ifdef CONFIG_WIREGUARD_MAX_PEERS

@@ -46,6 +46,13 @@
       "espidf",
       "arduino"
    ],
+   "dependencies": [
+      {
+        "owner": "esphome",
+        "name": "libsodium",
+        "version": "^1.10018.1"
+      }
+   ],
    "headers":[
       "esp_wireguard.h"
    ],

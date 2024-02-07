@@ -1,6 +1,6 @@
 {
    "name": "esp_wireguard",
-   "version": "0.3.2+esp8266-1",
+   "version": "0.3.2+esp8266-4",
    "description": "WireGuard implementation for ESPHome",
    "keywords":[
       "communication",
@@ -57,6 +57,9 @@
    },
    "build":{
       "includeDir": "include",
-      "srcDir": "src"
+      "srcDir": "src",
+      "flags": [
+        "-DMBEDTLS_CONFIG_FILE='\\<mbedtls/config-mbedtls-esp8266.h\\>'"
+      ]
    }
 }

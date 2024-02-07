@@ -7,8 +7,8 @@
 #include "lwip/sys.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
-#include "esp_system.h"
 
+#include "esp_wireguard_random.h"
 #include "esp_wireguard_err.h"
 #include "esp_wireguard_log.h"
 #include "crypto.h"
@@ -42,7 +42,7 @@ esp_err_t wireguard_platform_init() {
 			MBEDTLS_ENTROPY_SOURCE_STRONG);
 	if (mbedtls_err != 0) {
 		ESP_LOGE(TAG, "mbedtls_entropy_add_source: %i", mbedtls_err);
-		err = ESP_FAIL;
+		err = ESP_ERR_HW_CRYPTO_BASE;
 		goto fail;
 	}
 	mbedtls_err = mbedtls_ctr_drbg_seed(
@@ -53,7 +53,7 @@ esp_err_t wireguard_platform_init() {
 			ENTROPY_CUSTOM_DATA_LENGTH);
 	if (mbedtls_err != 0) {
 		ESP_LOGE(TAG, "mbedtls_ctr_drbg_seed: %i", mbedtls_err);
-		err = ESP_FAIL;
+		err = ESP_ERR_INVALID_CRC;
 		goto fail;
 	}
 	err = ESP_OK;

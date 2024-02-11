@@ -265,6 +265,7 @@ esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx)
         lwip_err = wireguardif_add_peer(ctx->netif, &peer, &wireguard_peer_index);
         if (lwip_err != ERR_OK || wireguard_peer_index == WIREGUARDIF_INVALID_INDEX) {
             ESP_LOGE(TAG, "wireguardif_add_peer: %i", lwip_err);
+            err = ESP_FAIL;
             goto fail;
         }
         if (ip_addr_isany(&peer.endpoint_ip)) {

@@ -87,12 +87,14 @@ typedef struct {
 /**
  * @brief Initialize WireGuard
  *
- * Call this function to initilize the context of WireGuard.
+ * Call this function to initialize the context of WireGuard.
  *
  * Do not call this function multiple times.
  *
  * To connect to other peer, use `esp_wireguard_disconnect()`, and
- * `esp_wireguard_init()` with a new configuration.
+ * `esp_wireguard_init()` with a new configuration. To reconnect to
+ * the same peer just use `esp_wireguard_disconnect()` and then
+ * `esp_wireguard_connect()`.
  *
  * @param       config WireGuard configuration.
  * @param[out]  ctx Context of WireGuard.
@@ -108,9 +110,9 @@ esp_err_t esp_wireguard_init(wireguard_config_t *config, wireguard_ctx_t *ctx);
  * @brief Create a WireGuard interface and start establishing the connection
  *        to the peer.
  *
- * Call the funtion to start establishing the connection. Note that `ESP_OK`
+ * Call this function to start establishing the connection. Note that `ESP_OK`
  * does not mean the connection is established. To see if the connection is
- * established, or the peer is up, use `esp_wireguardif_peer_is_up()`.
+ * established, or the peer is up, use `esp_wireguard_peer_is_up()`.
  *
  * Do not call this function multiple times.
  *
@@ -144,7 +146,8 @@ esp_err_t esp_wireguard_restore_default(const wireguard_ctx_t *ctx);
 /**
  * @brief Test if the peer is up.
  */
-esp_err_t esp_wireguardif_peer_is_up(const wireguard_ctx_t *ctx);
+esp_err_t esp_wireguard_peer_is_up(const wireguard_ctx_t *ctx);
+#define esp_wireguardif_peer_is_up(ctx) esp_wireguard_peer_is_up(ctx)  /**< backward compatibility with esp_wireguard before v0.4 */
 
 /**
  * @brief Get timestamp of the latest handshake (with seconds resolution since unix epoch)

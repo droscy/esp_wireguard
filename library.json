@@ -1,8 +1,9 @@
 {
    "name": "esp_wireguard",
-   "version": "0.3.2+esp8266-4.1",
+   "version": "0.4.0-beta4",
    "description": "WireGuard implementation for ESPHome",
    "keywords":[
+      "esphome",
       "communication",
       "network",
       "wireguard",
@@ -42,6 +43,10 @@
       }
    ],
    "license": "BSD-3-Clause",
+   "platforms": [
+      "espressif32",
+      "espressif8266"
+   ],
    "frameworks":[
       "espidf",
       "arduino"
@@ -51,6 +56,13 @@
         "owner": "esphome",
         "name": "libsodium",
         "version": "^1.10018.1"
+      },
+      {
+        "owner": "droscy",
+        "name": "esp_mbedtls_esp8266",
+        "version": "^2.23.0",
+        "platforms": "espressif8266",
+        "frameworks": "arduino"
       }
    ],
    "headers":[
@@ -58,6 +70,9 @@
    ],
    "export":{
       "include":[
+         "LICENSE",
+         "README.md",
+         "library.json",
          "include/*",
          "src/*"
       ]
@@ -66,8 +81,7 @@
       "includeDir": "include",
       "srcDir": "src",
       "flags": [
-        "-Wno-unused-result",
-        "-DMBEDTLS_CONFIG_FILE='\\<mbedtls/config-mbedtls-esp8266.h\\>'"
+        "-Wno-unused-result"
       ]
    }
 }

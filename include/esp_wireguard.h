@@ -50,6 +50,7 @@ extern "C" {
     .address = NULL, \
     .netmask = NULL, \
     .endpoint = NULL, \
+    .endpoint_ip = {0}, \
     .port = 51820, \
     .persistent_keepalive = 0, \
 }
@@ -71,6 +72,7 @@ typedef struct {
     const char* address;                /**< a local IP address. */
     const char* netmask;                /**< a subnet mask of the local IP address. */
     const char* endpoint;               /**< an endpoint IP address or hostname. */
+    ip_addr_t   endpoint_ip;            /**< endpoint IP address, provided by user or resolved through dns query */
     uint16_t    port;                   /**< a port number of remote endpoint. Default is 51820. */
     uint16_t    persistent_keepalive;   /**< a seconds interval, between 1 and 65535 inclusive, of how often to send an
                                              authenticated empty packet to the peer for the purpose of keeping a stateful
@@ -102,6 +104,7 @@ typedef struct {
  * @return
  *      - ESP_OK: Successfully initilized WireGuard interface.
  *      - ESP_ERR_INVALID_ARG: given argument is invalid.
+ *      - ESP_ERR_INVALID_STATE: hostname dns resolution cannot start
  *      - ESP_FAIL: Other error.
  */
 esp_err_t esp_wireguard_init(wireguard_config_t *config, wireguard_ctx_t *ctx);
@@ -119,6 +122,8 @@ esp_err_t esp_wireguard_init(wireguard_config_t *config, wireguard_ctx_t *ctx);
  * @param       ctx Context of WireGuard.
  * @return
  *      - ESP_OK on success.
+ *      - ESP_ERR_INVALID_ARG if input arguments are invalid
+ *      - ESP_ERR_NOT_ALLOWED if endpoint IP address is missing (dns query still ongoing or failed)
  *      - ESP_FAIL on failure.
  */
 esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx);
@@ -145,6 +150,11 @@ esp_err_t esp_wireguard_restore_default(const wireguard_ctx_t *ctx);
 
 /**
  * @brief Test if the peer is up.
+ * @param ctx Context of WireGuard
+ * @return
+ *      - ESP_OK on peer up.
+ *      - ESP_ERR_INVALID_ARG if ctx is NULL.
+ *      - ESP_FAIL on peer still down.
  */
 esp_err_t esp_wireguard_peer_is_up(const wireguard_ctx_t *ctx);
 #define esp_wireguardif_peer_is_up(ctx) esp_wireguard_peer_is_up(ctx)  /**< backward compatibility with esp_wireguard before v0.4 */

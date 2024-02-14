@@ -38,7 +38,6 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <time.h>
-//#include <sys/socket.h>
 
 #include "lwip/netif.h"
 #include "lwip/ip.h"
@@ -46,9 +45,14 @@
 #include "lwip/mem.h"
 #include "lwip/sys.h"
 #include "lwip/timeouts.h"
+
 #include "esp_wireguard_log.h"
 #include "esp_wireguard_err.h"
+
+#if defined(ESP32) || defined(ESP_IDF_VERSION)
+#include <sys/socket.h>
 #include "esp_netif.h"
+#endif  // defined(ESP32) || defined(ESP_IDF_VERSION)
 
 #include "wireguard.h"
 #include "crypto.h"
@@ -734,7 +738,7 @@ time_t wireguardif_latest_handshake(struct netif *netif, u8_t peer_index) {
 			 * the wireguard_sys_now() function returns milliseconds since device boot up,
 			 * so their difference is the timestamp (since epoch) of device boot time,
 			 * so the latest handshake (saved executing wireguard_sys_now) plus timestamp
-			 * of device boot time is the timestamp (since epoch)of the latest
+			 * of device boot time is the timestamp (since epoch) of the latest
 			 * completed handshake. With ~1 second precision.
 			 */
 			result = (peer->latest_handshake_millis / 1000) + (time(NULL) - (wireguard_sys_now() / 1000));
@@ -824,7 +828,7 @@ err_t wireguardif_add_peer(struct netif *netif, struct wireguardif_peer *p, u8_t
 			result = ERR_OK;
 		}
 	} else {
-		result = ERR_ARG;
+		result = ERR_BUF;
 	}
 
 	uint32_t t2 = wireguard_sys_now();
@@ -943,6 +947,8 @@ err_t wireguardif_init(struct netif *netif) {
 	size_t private_key_len = sizeof(private_key);
 
 	struct netif* underlying_netif = NULL;
+
+#if defined(ESP32) || defined(ESP_IDF_VERSION)
 	char lwip_netif_name[8] = {0,};
 
 	// list of interfaces to try to bind wireguard to
@@ -964,6 +970,10 @@ err_t wireguardif_init(struct netif *netif) {
 	}
 
 	underlying_netif = netif_find(lwip_netif_name);
+#else  // defined(ESP32) || defined(ESP_IDF_VERSION)
+	underlying_netif = netif_default;
+#endif  // defined(ESP32) || defined(ESP_IDF_VERSION)
+
 	if (underlying_netif == NULL) {
 		ESP_LOGE(TAG, "netif_find: cannot find %s (%s)", ifkey, lwip_netif_name);
 		result = ERR_IF;

@@ -49,10 +49,10 @@
 #include "esp_wireguard_log.h"
 #include "esp_wireguard_err.h"
 
-#if defined(ESP32) || defined(ESP_IDF_VERSION)
+#if !defined(ESP8266) || defined(IDF_VER)
 #include <sys/socket.h>
 #include "esp_netif.h"
-#endif  // defined(ESP32) || defined(ESP_IDF_VERSION)
+#endif  // !defined(ESP8266) || defined(IDF_VER)
 
 #include "wireguard.h"
 #include "crypto.h"
@@ -948,7 +948,7 @@ err_t wireguardif_init(struct netif *netif) {
 
 	struct netif* underlying_netif = NULL;
 
-#if defined(ESP32) || defined(ESP_IDF_VERSION)
+#if !defined(ESP8266) || defined(IDF_VER)
 	char lwip_netif_name[8] = {0,};
 
 	// list of interfaces to try to bind wireguard to
@@ -970,9 +970,9 @@ err_t wireguardif_init(struct netif *netif) {
 	}
 
 	underlying_netif = netif_find(lwip_netif_name);
-#else  // defined(ESP32) || defined(ESP_IDF_VERSION)
+#else  // !defined(ESP8266) || defined(IDF_VER)
 	underlying_netif = netif_default;
-#endif  // defined(ESP32) || defined(ESP_IDF_VERSION)
+#endif  // !defined(ESP8266) || defined(IDF_VER)
 
 	if (underlying_netif == NULL) {
 		ESP_LOGE(TAG, "netif_find: cannot find %s (%s)", ifkey, lwip_netif_name);

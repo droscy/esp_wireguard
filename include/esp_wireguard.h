@@ -124,7 +124,7 @@ esp_err_t esp_wireguard_init(wireguard_config_t *config, wireguard_ctx_t *ctx);
  *      - ESP_OK on success.
  *      - ESP_ERR_INVALID_ARG if input arguments are invalid
  *      - ESP_ERR_RETRY dns query still ongoing for endpoint hostname resolution (retry connection)
- *      - ESP_ERR_NOT_ALLOWED if endpoint IP address is missing or invalid (dns query failed)
+ *      - ESP_ERR_INVALID_IP if endpoint IP address is missing or invalid (dns query failed)
  *      - ESP_FAIL on failure.
  */
 esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx);

@@ -1,7 +1,7 @@
 #if !defined(__ESP_WIREGUARD_ERR__H__)
 #define __ESP_WIREGUARD_ERR__H__
 
-#if defined(ESP8266) && !defined(ESP_IDF_VERSION)
+#if defined(ESP8266) && !defined(IDF_VER)
 typedef int esp_err_t;
 
 #define ESP_OK          0       /*!< esp_err_t value indicating success (no error) */
@@ -26,12 +26,12 @@ typedef int esp_err_t;
 #define ESP_ERR_HW_CRYPTO_BASE      0xc000  /*!< Starting number of HW cryptography module error codes */
 #define ESP_ERR_MEMPROT_BASE        0xd000  /*!< Starting number of Memory Protection API error codes */
 
-#else  // defined(ESP8266) && !defined(ESP_IDF_VERSION)
+#else  // defined(ESP8266) && !defined(IDF_VER)
 #include <esp_err.h>
-#endif  // defined(ESP8266) && !defined(ESP_IDF_VERSION)
+#endif  // defined(ESP8266) && !defined(IDF_VER)
 
 // custom errors
-#define ESP_ERR_NOT_ALLOWED 0x200
+#define ESP_ERR_INVALID_IP  0x200
 #define ESP_ERR_RETRY       0x201
 
 #endif  // __ESP_WIREGUARD_ERR__H__

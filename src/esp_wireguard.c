@@ -67,10 +67,10 @@ static uint8_t preshared_key_decoded[WG_KEY_LEN];
 
 static void esp_wireguard_dns_query_callback(const char *hostname, const ip_addr_t *ipaddr, wireguard_config_t *config) {
     if(ipaddr) {
-        ESP_LOGD(TAG, "dns callback: hostname %s resolved to ip %s", hostname, ipaddr_ntoa(ipaddr));
+        ESP_LOGV(TAG, "dns_query_callback: hostname %s resolved to ip %s", hostname, ipaddr_ntoa(ipaddr));
         ip_addr_copy(config->endpoint_ip, *ipaddr);
     } else {
-        ESP_LOGW(TAG, "dns callback: cannot resolve hostname %s", hostname);
+        ESP_LOGW(TAG, "dns_query_callback: cannot resolve hostname %s", hostname);
         ip_addr_set_zero(&(config->endpoint_ip));
     }
 }
@@ -86,7 +86,7 @@ static esp_err_t esp_wireguard_peer_init(const wireguard_config_t *config, struc
 
     if(ip_addr_isany(&(config->endpoint_ip))) {
         ESP_LOGE(TAG, "peer_init: invalid endpoint ip: `%s`", ipaddr_ntoa(&(config->endpoint_ip)));
-        err = ESP_ERR_NOT_ALLOWED;
+        err = ESP_ERR_INVALID_IP;
         goto fail;
     }
     ip_addr_copy(peer->endpoint_ip, config->endpoint_ip);
@@ -201,7 +201,7 @@ esp_err_t esp_wireguard_init(wireguard_config_t *config, wireguard_ctx_t *ctx)
             &(config->endpoint_ip),
             (dns_found_callback)&esp_wireguard_dns_query_callback,
             config) == ERR_ARG) {
-        ESP_LOGE(TAG, "wireguard_platform_init: dns client not initialized or invalid hostname");
+        ESP_LOGE(TAG, "init: dns client not initialized or invalid hostname");
         err = ESP_ERR_INVALID_STATE;
         goto fail;
     }
@@ -233,7 +233,7 @@ esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx)
     if (ctx->netif == NULL) {
         err = esp_wireguard_netif_create(ctx->config);
         if (err != ESP_OK) {
-            ESP_LOGE(TAG, "esp_wireguard_netif_create: %s", esp_err_to_name(err));
+            ESP_LOGE(TAG, "netif_create: %s", esp_err_to_name(err));
             goto fail;
         }
         ctx->netif = wg_netif;
@@ -249,21 +249,21 @@ esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx)
 
     switch(lwip_err) {
         case ERR_OK:
-            ESP_LOGD(TAG, "esp_wireguard_connect: endpoint ip ready (%s)", ipaddr_ntoa(&(ctx->config->endpoint_ip)));
+            ESP_LOGV(TAG, "connect: endpoint ip ready (%s)", ipaddr_ntoa(&(ctx->config->endpoint_ip)));
             break;
 
         case ERR_INPROGRESS:
-            ESP_LOGI(TAG, "esp_wireguard_connect: dns resolution of endpoint hostname is still in progress");
+            ESP_LOGI(TAG, "connect: dns resolution of endpoint hostname is still in progress");
             err = ESP_ERR_RETRY;
             goto fail;
 
         case ERR_ARG:
-            ESP_LOGE(TAG, "esp_wireguard_connect: dns client not initialized or invalid hostname");
+            ESP_LOGE(TAG, "connect: dns client not initialized or invalid hostname");
             err = ESP_ERR_INVALID_STATE;
             goto fail;
 
         default:
-            ESP_LOGE(TAG, "esp_wireguard_connect: unknown error `%i` in hostname resolution", lwip_err);
+            ESP_LOGE(TAG, "connect: unknown error `%i` in hostname resolution", lwip_err);
             err = ESP_FAIL;
             goto fail;
     }
@@ -271,7 +271,7 @@ esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx)
         /* Initialize the first WireGuard peer structure */
         err = esp_wireguard_peer_init(ctx->config, &peer);
         if (err != ESP_OK) {
-            ESP_LOGE(TAG, "esp_wireguard_peer_init: %s", esp_err_to_name(err));
+            ESP_LOGE(TAG, "peer_init: %s", esp_err_to_name(err));
             goto fail;
         }
 
@@ -287,7 +287,7 @@ esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx)
             goto fail;
         }
 
-    ESP_LOGI(TAG, "connecting to %s (%s), port %i", ctx->config->endpoint, ipaddr_ntoa(&(ctx->config->endpoint_ip)), ctx->config->port);
+    ESP_LOGI(TAG, "connecting to %s (%s), port %i", ctx->config->endpoint, ipaddr_ntoa(&(peer.endpoint_ip)), peer.endport_port);
     lwip_err = wireguardif_connect(ctx->netif, wireguard_peer_index);
     if (lwip_err != ERR_OK) {
         ESP_LOGE(TAG, "wireguardif_connect: %i", lwip_err);

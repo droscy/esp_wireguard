@@ -1,6 +1,6 @@
 {
    "name": "esp_wireguard",
-   "version": "0.4.0-beta6",
+   "version": "0.4.0-beta7",
    "description": "WireGuard implementation for ESPHome",
    "keywords":[
       "esphome",

@@ -50,7 +50,7 @@ extern "C" {
     .address = NULL, \
     .netmask = NULL, \
     .endpoint = NULL, \
-    .endpoint_ip = {0}, \
+    .endpoint_ip = IPADDR4_INIT(0), \
     .port = 51820, \
     .persistent_keepalive = 0, \
 }
@@ -72,7 +72,7 @@ typedef struct {
     const char* address;                /**< a local IP address. */
     const char* netmask;                /**< a subnet mask of the local IP address. */
     const char* endpoint;               /**< an endpoint IP address or hostname. */
-    ip_addr_t   endpoint_ip;            /**< endpoint IP address, provided by user or resolved through dns query */
+    ip_addr_t   endpoint_ip;            /**< endpoint IP address (internal use, resolved through dns query) */
     uint16_t    port;                   /**< a port number of remote endpoint. Default is 51820. */
     uint16_t    persistent_keepalive;   /**< a seconds interval, between 1 and 65535 inclusive, of how often to send an
                                              authenticated empty packet to the peer for the purpose of keeping a stateful
@@ -119,11 +119,12 @@ esp_err_t esp_wireguard_init(wireguard_config_t *config, wireguard_ctx_t *ctx);
  *
  * Do not call this function multiple times.
  *
- * @param       ctx Context of WireGuard.
+ * @param ctx Context of WireGuard.
  * @return
  *      - ESP_OK on success.
  *      - ESP_ERR_INVALID_ARG if input arguments are invalid
- *      - ESP_ERR_NOT_ALLOWED if endpoint IP address is missing (dns query still ongoing or failed)
+ *      - ESP_ERR_RETRY dns query still ongoing for endpoint hostname resolution (retry connection)
+ *      - ESP_ERR_NOT_ALLOWED if endpoint IP address is missing or invalid (dns query failed)
  *      - ESP_FAIL on failure.
  */
 esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx);

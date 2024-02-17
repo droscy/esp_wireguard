@@ -66,11 +66,12 @@ static uint8_t wireguard_peer_index = WIREGUARDIF_INVALID_INDEX;
 static uint8_t preshared_key_decoded[WG_KEY_LEN];
 
 static void esp_wireguard_dns_query_callback(const char *hostname, const ip_addr_t *ipaddr, wireguard_config_t *config) {
-    if(!ipaddr) {
-        ESP_LOGE(TAG, "peer endpoint: cannot resolve hostname %s", hostname);
-    } else {
+    if(ipaddr) {
+        ESP_LOGD(TAG, "dns callback: hostname %s resolved to ip %s", hostname, ipaddr_ntoa(ipaddr));
         ip_addr_copy(config->endpoint_ip, *ipaddr);
-        ESP_LOGI(TAG, "peer endpoint %s resolved to %s", hostname, ipaddr_ntoa(&(config->endpoint_ip)));
+    } else {
+        ESP_LOGW(TAG, "dns callback: cannot resolve hostname %s", hostname);
+        ip_addr_set_zero(&(config->endpoint_ip));
     }
 }
 
@@ -237,6 +238,34 @@ esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx)
         }
         ctx->netif = wg_netif;
         ctx->netif_default = netif_default;
+    }
+
+    /* start another async hostname resolution in case the first was executed too early */
+    lwip_err = dns_gethostbyname(
+            ctx->config->endpoint,
+            &(ctx->config->endpoint_ip),
+            (dns_found_callback)&esp_wireguard_dns_query_callback,
+            ctx->config);
+
+    switch(lwip_err) {
+        case ERR_OK:
+            ESP_LOGD(TAG, "esp_wireguard_connect: endpoint ip ready (%s)", ipaddr_ntoa(&(ctx->config->endpoint_ip)));
+            break;
+
+        case ERR_INPROGRESS:
+            ESP_LOGI(TAG, "esp_wireguard_connect: dns resolution of endpoint hostname is still in progress");
+            err = ESP_ERR_RETRY;
+            goto fail;
+
+        case ERR_ARG:
+            ESP_LOGE(TAG, "esp_wireguard_connect: dns client not initialized or invalid hostname");
+            err = ESP_ERR_INVALID_STATE;
+            goto fail;
+
+        default:
+            ESP_LOGE(TAG, "esp_wireguard_connect: unknown error `%i` in hostname resolution", lwip_err);
+            err = ESP_FAIL;
+            goto fail;
     }
 
         /* Initialize the first WireGuard peer structure */

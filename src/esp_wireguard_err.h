@@ -32,5 +32,6 @@ typedef int esp_err_t;
 
 // custom errors
 #define ESP_ERR_NOT_ALLOWED 0x200
+#define ESP_ERR_RETRY       0x201
 
 #endif  // __ESP_WIREGUARD_ERR__H__

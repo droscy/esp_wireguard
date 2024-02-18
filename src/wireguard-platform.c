@@ -8,7 +8,13 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
 
-#include "esp_wireguard_random.h"
+#if defined(ESP8266) && !defined(IDF_VER)
+#include <osapi.h>
+#define esp_fill_random(out, size) os_get_random(out, size)
+#else  // defined(ESP8266) && !defined(IDF_VER)
+#include <esp_system.h>
+#endif  // defined(ESP8266) && !defined(IDF_VER)
+
 #include "esp_wireguard_err.h"
 #include "esp_wireguard_log.h"
 #include "crypto.h"

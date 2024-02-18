@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2021 Daniel Hope (www.floorsense.nz)
  * Copyright (c) 2021 Kenta Ida (fuga@fugafuga.org)
- * Copyright (c) 2023 Simone Rossetto <simros85@gmail.com>
+ * Copyright (c) 2023-2024 Simone Rossetto <simros85@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,

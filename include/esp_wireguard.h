@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2022 Tomoyuki Sakurai <y@trombik.org>
- * Copyright (c) 2023 Simone Rossetto <simros85@gmail.com>
+ * Copyright (c) 2023-2024 Simone Rossetto <simros85@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -38,8 +38,8 @@ extern "C" {
 
 #include <stdint.h>
 #include <time.h>
-#include <esp_err.h>
 #include <lwip/netif.h>
+#include "esp_wireguard_err.h"
 
 #define ESP_WIREGUARD_CONFIG_DEFAULT() { \
     .private_key = NULL, \
@@ -50,6 +50,7 @@ extern "C" {
     .address = NULL, \
     .netmask = NULL, \
     .endpoint = NULL, \
+    .endpoint_ip = IPADDR4_INIT(0), \
     .port = 51820, \
     .persistent_keepalive = 0, \
 }
@@ -71,6 +72,7 @@ typedef struct {
     const char* address;                /**< a local IP address. */
     const char* netmask;                /**< a subnet mask of the local IP address. */
     const char* endpoint;               /**< an endpoint IP address or hostname. */
+    ip_addr_t   endpoint_ip;            /**< endpoint IP address (internal use, resolved through dns query) */
     uint16_t    port;                   /**< a port number of remote endpoint. Default is 51820. */
     uint16_t    persistent_keepalive;   /**< a seconds interval, between 1 and 65535 inclusive, of how often to send an
                                              authenticated empty packet to the peer for the purpose of keeping a stateful
@@ -87,12 +89,14 @@ typedef struct {
 /**
  * @brief Initialize WireGuard
  *
- * Call this function to initilize the context of WireGuard.
+ * Call this function to initialize the context of WireGuard.
  *
  * Do not call this function multiple times.
  *
  * To connect to other peer, use `esp_wireguard_disconnect()`, and
- * `esp_wireguard_init()` with a new configuration.
+ * `esp_wireguard_init()` with a new configuration. To reconnect to
+ * the same peer just use `esp_wireguard_disconnect()` and then
+ * `esp_wireguard_connect()`.
  *
  * @param       config WireGuard configuration.
  * @param[out]  ctx Context of WireGuard.
@@ -100,6 +104,7 @@ typedef struct {
  * @return
  *      - ESP_OK: Successfully initilized WireGuard interface.
  *      - ESP_ERR_INVALID_ARG: given argument is invalid.
+ *      - ESP_ERR_INVALID_STATE: hostname dns resolution cannot start
  *      - ESP_FAIL: Other error.
  */
 esp_err_t esp_wireguard_init(wireguard_config_t *config, wireguard_ctx_t *ctx);
@@ -108,15 +113,18 @@ esp_err_t esp_wireguard_init(wireguard_config_t *config, wireguard_ctx_t *ctx);
  * @brief Create a WireGuard interface and start establishing the connection
  *        to the peer.
  *
- * Call the funtion to start establishing the connection. Note that `ESP_OK`
+ * Call this function to start establishing the connection. Note that `ESP_OK`
  * does not mean the connection is established. To see if the connection is
- * established, or the peer is up, use `esp_wireguardif_peer_is_up()`.
+ * established, or the peer is up, use `esp_wireguard_peer_is_up()`.
  *
  * Do not call this function multiple times.
  *
- * @param       ctx Context of WireGuard.
+ * @param ctx Context of WireGuard.
  * @return
  *      - ESP_OK on success.
+ *      - ESP_ERR_INVALID_ARG if input arguments are invalid
+ *      - ESP_ERR_RETRY dns query still ongoing for endpoint hostname resolution (retry connection)
+ *      - ESP_ERR_INVALID_IP if endpoint IP address is missing or invalid (dns query failed)
  *      - ESP_FAIL on failure.
  */
 esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx);
@@ -143,8 +151,14 @@ esp_err_t esp_wireguard_restore_default(const wireguard_ctx_t *ctx);
 
 /**
  * @brief Test if the peer is up.
+ * @param ctx Context of WireGuard
+ * @return
+ *      - ESP_OK on peer up.
+ *      - ESP_ERR_INVALID_ARG if ctx is NULL.
+ *      - ESP_FAIL on peer still down.
  */
-esp_err_t esp_wireguardif_peer_is_up(const wireguard_ctx_t *ctx);
+esp_err_t esp_wireguard_peer_is_up(const wireguard_ctx_t *ctx);
+#define esp_wireguardif_peer_is_up(ctx) esp_wireguard_peer_is_up(ctx)  /**< backward compatibility with esp_wireguard before v0.4 */
 
 /**
  * @brief Get timestamp of the latest handshake (with seconds resolution since unix epoch)

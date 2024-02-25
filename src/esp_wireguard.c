@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2022 Tomoyuki Sakurai <y@trombik.org>
- * Copyright (c) 2023 Simone Rossetto <simros85@gmail.com>
+ * Copyright (c) 2023-2024 Simone Rossetto <simros85@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -38,11 +38,13 @@
 #include <time.h>
 
 #include "lwip/ip.h"
+#include "lwip/ip_addr.h"
 #include "lwip/netdb.h"
+#include "lwip/dns.h"
 #include "lwip/err.h"
-#include "esp_err.h"
+#include "esp_wireguard_err.h"
 #define LOG_LOCAL_LEVEL ESP_LOG_VERBOSE
-#include "esp_log.h"
+#include "esp_wireguard_log.h"
 #include "mbedtls/base64.h"
 
 #include "wireguard-platform.h"
@@ -64,20 +66,31 @@ static struct wireguardif_peer peer = {0};
 static uint8_t wireguard_peer_index = WIREGUARDIF_INVALID_INDEX;
 static uint8_t preshared_key_decoded[WG_KEY_LEN];
 
+static void esp_wireguard_dns_query_callback(const char *hostname, const ip_addr_t *ipaddr, wireguard_config_t *config) {
+    if(ipaddr) {
+        ESP_LOGV(TAG, "dns_query_callback: hostname %s resolved to ip %s", hostname, ipaddr_ntoa(ipaddr));
+        ip_addr_copy(config->endpoint_ip, *ipaddr);
+    } else {
+        ESP_LOGW(TAG, "dns_query_callback: cannot resolve hostname %s", hostname);
+        ip_addr_set_zero(&(config->endpoint_ip));
+    }
+}
+
 static esp_err_t esp_wireguard_peer_init(const wireguard_config_t *config, struct wireguardif_peer *peer)
 {
     esp_err_t err;
-    char addr_str[WG_ADDRSTRLEN];
-    struct addrinfo *res = NULL;
-    struct addrinfo hints;
-
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_UNSPEC;
 
     if (!config || !peer) {
         err = ESP_ERR_INVALID_ARG;
         goto fail;
     }
+
+    if(ip_addr_isany(&(config->endpoint_ip))) {
+        ESP_LOGE(TAG, "peer_init: invalid endpoint ip: `%s`", ipaddr_ntoa(&(config->endpoint_ip)));
+        err = ESP_ERR_INVALID_IP;
+        goto fail;
+    }
+    ip_addr_copy(peer->endpoint_ip, config->endpoint_ip);
 
     peer->public_key = config->public_key;
     if (config->preshared_key != NULL) {
@@ -114,48 +127,12 @@ static esp_err_t esp_wireguard_peer_init(const wireguard_config_t *config, struc
         ip_addr_t allowed_mask = IPADDR4_INIT_BYTES(255, 255, 255, 255);
         peer->allowed_mask = allowed_mask;
     }
-
     ESP_LOGI(TAG, "default allowed_ip: %s/%s", config->address, ipaddr_ntoa(&(peer->allowed_mask)));
 
-    /* resolve peer name or IP address */
-    {
-        ip_addr_t endpoint_ip;
-        memset(&endpoint_ip, 0, sizeof(endpoint_ip));
-
-        /* XXX lwip_getaddrinfo returns only the first address of a host at the moment */
-        if (getaddrinfo(config->endpoint, NULL, &hints, &res) != 0) {
-            err = ESP_FAIL;
-
-            /* XXX gai_strerror() is not implemented */
-            ESP_LOGE(TAG, "getaddrinfo: unable to resolve `%s`", config->endpoint);
-            goto fail;
-        }
-
-        if (res->ai_family == AF_INET) {
-            struct in_addr addr4 = ((struct sockaddr_in *) (res->ai_addr))->sin_addr;
-            inet_addr_to_ip4addr(ip_2_ip4(&endpoint_ip), &addr4);
-        } else {
-#if defined(CONFIG_LWIP_IPV6)
-            struct in6_addr addr6 = ((struct sockaddr_in6 *) (res->ai_addr))->sin6_addr;
-            inet6_addr_to_ip6addr(ip_2_ip6(&endpoint_ip), &addr6);
-#endif
-        }
-        peer->endpoint_ip = endpoint_ip;
-
-        if (inet_ntop(res->ai_family, &(peer->endpoint_ip), addr_str, WG_ADDRSTRLEN) == NULL) {
-            ESP_LOGW(TAG, "inet_ntop: %i", errno);
-        } else {
-            ESP_LOGI(TAG, "peer endpoint: %s (%s), port: %i",
-                                            config->endpoint,
-                                            addr_str,
-                                            config->port);
-        }
-    }
     peer->endport_port = config->port;
     peer->keep_alive = config->persistent_keepalive;
     err = ESP_OK;
 fail:
-    freeaddrinfo(res);
     return err;
 }
 
@@ -219,6 +196,17 @@ esp_err_t esp_wireguard_init(wireguard_config_t *config, wireguard_ctx_t *ctx)
         goto fail;
     }
 
+    /* start async hostname resolution */
+    if(dns_gethostbyname(
+            config->endpoint,
+            &(config->endpoint_ip),
+            (dns_found_callback)&esp_wireguard_dns_query_callback,
+            config) == ERR_ARG) {
+        ESP_LOGE(TAG, "init: dns client not initialized or invalid hostname");
+        err = ESP_ERR_INVALID_STATE;
+        goto fail;
+    }
+
     err = wireguard_platform_init();
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "wireguard_platform_init: %s", esp_err_to_name(err));
@@ -246,17 +234,45 @@ esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx)
     if (ctx->netif == NULL) {
         err = esp_wireguard_netif_create(ctx->config);
         if (err != ESP_OK) {
-            ESP_LOGE(TAG, "esp_wireguard_netif_create: %s", esp_err_to_name(err));
+            ESP_LOGE(TAG, "netif_create: %s", esp_err_to_name(err));
             goto fail;
         }
         ctx->netif = wg_netif;
         ctx->netif_default = netif_default;
     }
 
+    /* start another async hostname resolution in case the first was executed too early */
+    lwip_err = dns_gethostbyname(
+            ctx->config->endpoint,
+            &(ctx->config->endpoint_ip),
+            (dns_found_callback)&esp_wireguard_dns_query_callback,
+            ctx->config);
+
+    switch(lwip_err) {
+        case ERR_OK:
+            ESP_LOGV(TAG, "connect: endpoint ip ready (%s)", ipaddr_ntoa(&(ctx->config->endpoint_ip)));
+            break;
+
+        case ERR_INPROGRESS:
+            ESP_LOGI(TAG, "connect: dns resolution of endpoint hostname is still in progress");
+            err = ESP_ERR_RETRY;
+            goto fail;
+
+        case ERR_ARG:
+            ESP_LOGE(TAG, "connect: dns client not initialized or invalid hostname");
+            err = ESP_ERR_INVALID_STATE;
+            goto fail;
+
+        default:
+            ESP_LOGE(TAG, "connect: unknown error `%i` in hostname resolution", lwip_err);
+            err = ESP_FAIL;
+            goto fail;
+    }
+
         /* Initialize the first WireGuard peer structure */
         err = esp_wireguard_peer_init(ctx->config, &peer);
         if (err != ESP_OK) {
-            ESP_LOGE(TAG, "esp_wireguard_peer_init: %s", esp_err_to_name(err));
+            ESP_LOGE(TAG, "peer_init: %s", esp_err_to_name(err));
             goto fail;
         }
 
@@ -264,6 +280,7 @@ esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx)
         lwip_err = wireguardif_add_peer(ctx->netif, &peer, &wireguard_peer_index);
         if (lwip_err != ERR_OK || wireguard_peer_index == WIREGUARDIF_INVALID_INDEX) {
             ESP_LOGE(TAG, "wireguardif_add_peer: %i", lwip_err);
+            err = ESP_FAIL;
             goto fail;
         }
         if (ip_addr_isany(&peer.endpoint_ip)) {
@@ -271,7 +288,7 @@ esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx)
             goto fail;
         }
 
-    ESP_LOGI(TAG, "connecting to %s:%i", ctx->config->endpoint, ctx->config->port);
+    ESP_LOGI(TAG, "connecting to %s (%s), port %i", ctx->config->endpoint, ipaddr_ntoa(&(peer.endpoint_ip)), peer.endport_port);
     lwip_err = wireguardif_connect(ctx->netif, wireguard_peer_index);
     if (lwip_err != ERR_OK) {
         ESP_LOGE(TAG, "wireguardif_connect: %i", lwip_err);
@@ -348,7 +365,7 @@ fail:
     return err;
 }
 
-esp_err_t esp_wireguardif_peer_is_up(const wireguard_ctx_t *ctx)
+esp_err_t esp_wireguard_peer_is_up(const wireguard_ctx_t *ctx)
 {
     esp_err_t err;
     err_t lwip_err;

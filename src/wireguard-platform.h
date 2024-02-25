@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2021 Daniel Hope (www.floorsense.nz)
+ * Copyright (c) 2024 Simone Rossetto <simros85@gmail.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -41,7 +42,7 @@ extern "C" {
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "esp_err.h"
+#include "esp_wireguard_err.h"
 
 // Peers are allocated statically inside the device structure to avoid malloc
 #ifdef CONFIG_WIREGUARD_MAX_PEERS

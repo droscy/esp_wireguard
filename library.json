@@ -45,7 +45,8 @@
    "license": "BSD-3-Clause",
    "platforms": [
       "espressif32",
-      "espressif8266"
+      "espressif8266",
+      "libretiny"
    ],
    "frameworks":[
       "espidf",

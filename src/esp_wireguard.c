@@ -208,7 +208,11 @@ esp_err_t esp_wireguard_init(wireguard_config_t *config, wireguard_ctx_t *ctx)
 
     err = wireguard_platform_init();
     if (err != ESP_OK) {
+#if !defined(LIBRETINY)
         ESP_LOGE(TAG, "wireguard_platform_init: %s", esp_err_to_name(err));
+#else // !defined(LIBRETINY)
+        ESP_LOGE(TAG, "wireguard_platform_init: %d", err);
+#endif // !defined(LIBRETINY)
         goto fail;
     }
     ctx->config = config;
@@ -233,7 +237,11 @@ esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx)
     if (ctx->netif == NULL) {
         err = esp_wireguard_netif_create(ctx->config);
         if (err != ESP_OK) {
+#if !defined(LIBRETINY)
             ESP_LOGE(TAG, "netif_create: %s", esp_err_to_name(err));
+#else // !defined(LIBRETINY)
+            ESP_LOGE(TAG, "netif_create: %d", err);
+#endif // !defined(LIBRETINY)
             goto fail;
         }
         ctx->netif = wg_netif;
@@ -271,7 +279,11 @@ esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx)
         /* Initialize the first WireGuard peer structure */
         err = esp_wireguard_peer_init(ctx->config, &peer);
         if (err != ESP_OK) {
+#if !defined(LIBRETINY)
             ESP_LOGE(TAG, "peer_init: %s", esp_err_to_name(err));
+#else // !defined(LIBRETINY)
+            ESP_LOGE(TAG, "peer_init: %d", err);
+#endif // !defined(LIBRETINY)
             goto fail;
         }
 

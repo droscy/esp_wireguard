@@ -743,7 +743,7 @@ time_t wireguardif_latest_handshake(struct netif *netif, u8_t peer_index) {
 			 */
 			result = (peer->latest_handshake_millis / 1000) + (time(NULL) - (wireguard_sys_now() / 1000));
 		} else {
-			ESP_LOGD(TAG, "wireguardif_latest_handshake: valid=%d, lhs=%d", (int) peer->valid, peer->latest_handshake_millis);
+			ESP_LOGD(TAG, "wireguardif_latest_handshake: valid=%ld, lhs=%ld", (long) peer->valid, (long) peer->latest_handshake_millis);
 		}
 	}
 	return result;

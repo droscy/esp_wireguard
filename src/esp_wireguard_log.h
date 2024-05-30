@@ -56,8 +56,10 @@
 #define ESP_LOGV(tag, ...) _noop(tag, __VA_ARGS__)
 #endif
 
-#else  // defined(ESP8266) && !defined(IDF_VER)
+#elif defined(LIBRETINY)
+#include <libretiny.h>
+#else // defined(LIBRETINY)
 #include <esp_log.h>
-#endif  // defined(ESP8266) && !defined(IDF_VER)
+#endif // defined(ESP8266) && !defined(IDF_VER)
 
 #endif  // __ESP_WIREGUARD_LOG__H__

@@ -31,7 +31,11 @@
 #if !defined(__ESP_WIREGUARD_ERR__H__)
 #define __ESP_WIREGUARD_ERR__H__
 
-#if defined(ESP8266) && !defined(IDF_VER)
+#if defined(LIBRETINY)
+#undef esp_err_t
+#endif
+
+#if defined(ESP8266) && !defined(IDF_VER) || defined(LIBRETINY)
 typedef int esp_err_t;
 
 #define ESP_OK          0       /*!< esp_err_t value indicating success (no error) */

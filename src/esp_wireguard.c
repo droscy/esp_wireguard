@@ -209,7 +209,11 @@ esp_err_t esp_wireguard_init(wireguard_config_t *config, wireguard_ctx_t *ctx)
 
     err = wireguard_platform_init();
     if (err != ESP_OK) {
+#if !defined(LIBRETINY)
         ESP_LOGE(TAG, "wireguard_platform_init: %s", esp_err_to_name(err));
+#else // !defined(LIBRETINY)
+        ESP_LOGE(TAG, "wireguard_platform_init: %d", err);
+#endif // !defined(LIBRETINY)
         goto fail;
     }
     ctx->config = config;
@@ -234,7 +238,11 @@ esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx)
     if (ctx->netif == NULL) {
         err = esp_wireguard_netif_create(ctx->config);
         if (err != ESP_OK) {
+#if !defined(LIBRETINY)
             ESP_LOGE(TAG, "netif_create: %s", esp_err_to_name(err));
+#else // !defined(LIBRETINY)
+            ESP_LOGE(TAG, "netif_create: %d", err);
+#endif // !defined(LIBRETINY)
             goto fail;
         }
         ctx->netif = wg_netif;
@@ -272,7 +280,11 @@ esp_err_t esp_wireguard_connect(wireguard_ctx_t *ctx)
         /* Initialize the first WireGuard peer structure */
         err = esp_wireguard_peer_init(ctx->config, &peer);
         if (err != ESP_OK) {
+#if !defined(LIBRETINY)
             ESP_LOGE(TAG, "peer_init: %s", esp_err_to_name(err));
+#else // !defined(LIBRETINY)
+            ESP_LOGE(TAG, "peer_init: %d", err);
+#endif // !defined(LIBRETINY)
             goto fail;
         }
 
@@ -344,6 +356,10 @@ esp_err_t esp_wireguard_disconnect(wireguard_ctx_t *ctx)
         goto fail;
     }
 
+    // Clear the IP address to gracefully disconnect any clients while the
+    // peers are still valid
+    netif_set_ipaddr(ctx->netif, IP4_ADDR_ANY4);
+
     lwip_err = wireguardif_disconnect(ctx->netif, wireguard_peer_index);
     if (lwip_err != ERR_OK) {
         ESP_LOGW(TAG, "wireguardif_disconnect: peer_index: %" PRIu8 " err: %i", wireguard_peer_index, lwip_err);
@@ -357,6 +373,7 @@ esp_err_t esp_wireguard_disconnect(wireguard_ctx_t *ctx)
     wireguard_peer_index = WIREGUARDIF_INVALID_INDEX;
     wireguardif_shutdown(ctx->netif);
     netif_remove(ctx->netif);
+    wireguardif_fini(ctx->netif);
     netif_set_default(ctx->netif_default);
     ctx->netif = NULL;
 

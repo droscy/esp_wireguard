@@ -50,10 +50,10 @@
 #include "esp_wireguard_log.h"
 #include "esp_wireguard_err.h"
 
-#if !defined(ESP8266) || defined(IDF_VER)
+#if (!defined(ESP8266) || defined(IDF_VER)) && !defined(LIBRETINY)
 #include <sys/socket.h>
 #include "esp_netif.h"
-#endif  // !defined(ESP8266) || defined(IDF_VER)
+#endif  // (!defined(ESP8266) || defined(IDF_VER)) && !defined(LIBRETINY)
 
 #include "wireguard.h"
 #include "crypto.h"
@@ -205,8 +205,14 @@ static err_t wireguardif_output(struct netif *netif, struct pbuf *q, const ip4_a
 		return ERR_IF;
 	}
 	struct wireguard_device *device = (struct wireguard_device *)netif->state;
-	// Send to peer that matches dest IP
 	ip_addr_t ipaddr;
+
+	if (!device) {
+		ESP_LOGE(TAG, "wireguardif_output NULL device");
+		return ERR_RTE;
+	}
+
+	// Send to peer that matches dest IP
 	ip_addr_copy_from_ip4(ipaddr, *ip4addr);
 	struct wireguard_peer *peer = peer_lookup_by_allowed_ip(device, &ipaddr);
 	if (peer) {
@@ -744,7 +750,7 @@ time_t wireguardif_latest_handshake(struct netif *netif, u8_t peer_index) {
 			 */
 			result = (peer->latest_handshake_millis / 1000) + (time(NULL) - (wireguard_sys_now() / 1000));
 		} else {
-			ESP_LOGD(TAG, "wireguardif_latest_handshake: valid=%d, lhs=%d", (int) peer->valid, peer->latest_handshake_millis);
+			ESP_LOGD(TAG, "wireguardif_latest_handshake: valid=%ld, lhs=%ld", (long) peer->valid, (long) peer->latest_handshake_millis);
 		}
 	}
 	return result;
@@ -949,7 +955,7 @@ err_t wireguardif_init(struct netif *netif) {
 
 	struct netif* underlying_netif = NULL;
 
-#if !defined(ESP8266) || defined(IDF_VER)
+#if (!defined(ESP8266) || defined(IDF_VER)) && !defined(LIBRETINY)
 	char lwip_netif_name[8] = {0,};
 
 	// list of interfaces to try to bind wireguard to
@@ -971,15 +977,21 @@ err_t wireguardif_init(struct netif *netif) {
 	}
 
 	underlying_netif = netif_find(lwip_netif_name);
-#else  // !defined(ESP8266) || defined(IDF_VER)
-	underlying_netif = netif_default;
-#endif  // !defined(ESP8266) || defined(IDF_VER)
 
 	if (underlying_netif == NULL) {
 		ESP_LOGE(TAG, "netif_find: cannot find %s (%s)", ifkey, lwip_netif_name);
 		result = ERR_IF;
 		goto fail;
 	}
+#else  // (!defined(ESP8266) || defined(IDF_VER)) && !defined(LIBRETINY)
+	underlying_netif = netif_default;
+
+	if (underlying_netif == NULL) {
+		ESP_LOGE(TAG, "netif_find: cannot find default netif");
+		result = ERR_IF;
+		goto fail;
+	}
+#endif  // (!defined(ESP8266) || defined(IDF_VER)) && !defined(LIBRETINY)
 
 	ESP_LOGV(TAG, "underlying_netif = %p", underlying_netif);
 
@@ -1092,6 +1104,14 @@ void wireguardif_shutdown(struct netif *netif) {
 		udp_remove(device->udp_pcb);
 		device->udp_pcb = NULL;
 	}
+}
+
+void wireguardif_fini(struct netif *netif) {
+	LWIP_ASSERT("netif != NULL", (netif != NULL));
+	LWIP_ASSERT("state != NULL", (netif->state != NULL));
+
+	struct wireguard_device *device = (struct wireguard_device *)netif->state;
+
 	// remove device context.
 	free(device);
 	netif->state = NULL;

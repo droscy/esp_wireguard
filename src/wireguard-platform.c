@@ -38,13 +38,17 @@
 #include "lwip/sys.h"
 #include "mbedtls/entropy.h"
 #include "mbedtls/ctr_drbg.h"
+#include "mbedtls/version.h"
 
 #if defined(ESP8266) && !defined(IDF_VER)
 #include <osapi.h>
 #define esp_fill_random(out, size) os_get_random(out, size)
-#else  // defined(ESP8266) && !defined(IDF_VER)
+#elif defined(LIBRETINY)
+#include <libretiny.h>
+#define esp_fill_random(out, size) lt_rand_bytes(out, size)
+#else // defined(LIBRETINY)
 #include <esp_system.h>
-#endif  // defined(ESP8266) && !defined(IDF_VER)
+#endif // defined(ESP8266) && !defined(IDF_VER)
 
 #include "esp_wireguard_err.h"
 #include "esp_wireguard_log.h"
@@ -56,8 +60,13 @@
 #define ENTROPY_CUSTOM_DATA_LENGTH (0)
 #define TAG "wireguard-platform"
 
+#if MBEDTLS_VERSION_NUMBER >= 0x020D0000
 static struct mbedtls_ctr_drbg_context random_context;
 static struct mbedtls_entropy_context entropy_context;
+#else
+static mbedtls_ctr_drbg_context random_context;
+static mbedtls_entropy_context entropy_context;
+#endif
 
 static int entropy_hw_random_source( void *data, unsigned char *output, size_t len, size_t *olen ) {
 	esp_fill_random(output, len);

@@ -16,8 +16,11 @@ in ESPHome website.
 
 ## Compatibility
 
-This code targets only ESPHome and has been tested on `esp32` boards (with both frameworks `esp-idf` and `Arduino`)
-and on `esp8266` boards.
+This code targets only ESPHome and has been tested on the following platforms:
+
+* ESP32 (with both frameworks)
+* ESP8266
+* LibreTiny (with `bk72` microcontrollers only)
 
 
 ## References
@@ -27,6 +30,10 @@ For additional information see:
 * the original feature-request [esphome/feature-requests#1444](https://github.com/esphome/feature-requests/issues/1444)
 
 * the first pull-request [esphome/esphome#4256](https://github.com/esphome/esphome/pull/4256)
+
+* `esp8266` support [esphome/esphome#6365](https://github.com/esphome/esphome/pull/6365)
+
+* LibreTiny support [droscy/esp_wireguard#4](https://github.com/droscy/esp_wireguard/pull/4)
 
 
 ## License

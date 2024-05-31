@@ -1,6 +1,6 @@
 {
    "name": "esp_wireguard",
-   "version": "0.4.0",
+   "version": "0.4.1",
    "description": "WireGuard implementation for ESPHome",
    "keywords":[
       "esphome",
@@ -61,7 +61,7 @@
       {
         "owner": "droscy",
         "name": "esp_mbedtls_esp8266",
-        "version": "^2.23.0",
+        "version": "^2.22300.2",
         "platforms": "espressif8266",
         "frameworks": "arduino"
       }

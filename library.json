@@ -56,7 +56,7 @@
       {
         "owner": "esphome",
         "name": "libsodium",
-        "version": "^1.10018.1"
+        "version": "^1.10020.7"
       },
       {
         "owner": "droscy",

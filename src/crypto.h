@@ -9,7 +9,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
-// BLAKE2S IMPLEMENTATION
+// BLAKE2S IMPLEMENTATION (reference, no equivalent in libsodium which provides BLAKE2b only)
 #include "crypto/refc/blake2s.h"
 #define wireguard_blake2s_ctx blake2s_ctx
 #define wireguard_blake2s_init(ctx,outlen,key,keylen) blake2s_init(ctx,outlen,key,keylen)
@@ -21,13 +21,15 @@ extern "C" {
 #include <sodium.h>
 #define wireguard_x25519(a,b,c) crypto_scalarmult_curve25519(a,b,c)
 
-// CHACHA20POLY1305 IMPLEMENTATION
-#include "crypto/refc/chacha20poly1305.h"
-#define wireguard_aead_encrypt(dst,src,srclen,ad,adlen,nonce,key) chacha20poly1305_encrypt(dst,src,srclen,ad,adlen,nonce,key)
-#define wireguard_aead_decrypt(dst,src,srclen,ad,adlen,nonce,key) chacha20poly1305_decrypt(dst,src,srclen,ad,adlen,nonce,key)
-#define wireguard_xaead_encrypt(dst,src,srclen,ad,adlen,nonce,key) xchacha20poly1305_encrypt(dst,src,srclen,ad,adlen,nonce,key)
-#define wireguard_xaead_decrypt(dst,src,srclen,ad,adlen,nonce,key) xchacha20poly1305_decrypt(dst,src,srclen,ad,adlen,nonce,key)
+// CHACHA20POLY1305 IMPLEMENTATION (wrappers around libsodium, see crypto.c)
+void wireguard_aead_encrypt(uint8_t *dst, const uint8_t *src, size_t src_len, const uint8_t *ad, size_t ad_len, uint64_t nonce, const uint8_t *key);
+bool wireguard_aead_decrypt(uint8_t *dst, const uint8_t *src, size_t src_len, const uint8_t *ad, size_t ad_len, uint64_t nonce, const uint8_t *key);
+void wireguard_xaead_encrypt(uint8_t *dst, const uint8_t *src, size_t src_len, const uint8_t *ad, size_t ad_len, const uint8_t *nonce, const uint8_t *key);
+bool wireguard_xaead_decrypt(uint8_t *dst, const uint8_t *src, size_t src_len, const uint8_t *ad, size_t ad_len, const uint8_t *nonce, const uint8_t *key);
 
+// SECURE MEMORY UTILITIES (libsodium)
+#define crypto_zero(dest, len) sodium_memzero((dest), (len))
+#define crypto_equal(a, b, size) (sodium_memcmp((a), (b), (size)) == 0)
 
 // Endian / unaligned helper macros
 #define U8C(v) (v##U)
@@ -98,9 +100,6 @@ extern "C" {
     (p)[0] = U8V((v) >> 56); \
 } while (0)
 
-
-void crypto_zero(void *dest, size_t len);
-bool crypto_equal(const void *a, const void *b, size_t size);
 
 #ifdef __cplusplus
 }

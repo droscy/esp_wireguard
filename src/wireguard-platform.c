@@ -47,7 +47,11 @@
 #include <esp_system.h>
 #endif // defined(ESP8266) && !defined(IDF_VER)
 
+#if __has_include("mbedtls/build_info.h")
 #include "mbedtls/build_info.h"
+#else
+#include "mbedtls/version.h"
+#endif
 #if MBEDTLS_VERSION_NUMBER >= 0x04000000
 // mbedtls 4.0 removed entropy.h and ctr_drbg.h; use PSA crypto API
 #include "psa/crypto.h"

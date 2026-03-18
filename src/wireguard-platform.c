@@ -36,9 +36,6 @@
 #include <inttypes.h>
 
 #include "lwip/sys.h"
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/version.h"
 
 #if defined(ESP8266) && !defined(IDF_VER)
 #include <osapi.h>
@@ -53,62 +50,58 @@
 #include "esp_wireguard_err.h"
 #include "esp_wireguard_log.h"
 #include "crypto.h"
+#include "crypto/refc/chacha20.h"
 
-#define ENTROPY_MINIMUM_REQUIRED_THRESHOLD	(134)
-#define ENTROPY_FUNCTION_DATA	NULL
-#define ENTROPY_CUSTOM_DATA		NULL
-#define ENTROPY_CUSTOM_DATA_LENGTH (0)
 #define TAG "wireguard-platform"
 
-#if MBEDTLS_VERSION_NUMBER >= 0x020D0000
-static struct mbedtls_ctr_drbg_context random_context;
-static struct mbedtls_entropy_context entropy_context;
-#else
-static mbedtls_ctr_drbg_context random_context;
-static mbedtls_entropy_context entropy_context;
-#endif
-
-static int entropy_hw_random_source( void *data, unsigned char *output, size_t len, size_t *olen ) {
-	esp_fill_random(output, len);
-	*olen = len;
-	return 0;
-}
+/*
+ * ChaCha20 fast-key-erasure DRBG (D.J. Bernstein scheme).
+ * State: a 256-bit ChaCha20 key seeded from hardware entropy on init.
+ * Per-call: fresh hardware entropy is XOR-ed into the key, one 64-byte
+ * ChaCha20 block is generated, the first 32 bytes replace the key (forward
+ * secrecy / key erasure) and the remaining 32 bytes are the output pool.
+ */
+static uint8_t  rng_key[CHACHA20_KEY_SIZE];
+static uint64_t rng_counter = 0;
 
 esp_err_t wireguard_platform_init() {
-	int mbedtls_err;
-	esp_err_t err;
-
-	mbedtls_entropy_init(&entropy_context);
-	mbedtls_ctr_drbg_init(&random_context);
-	mbedtls_err = mbedtls_entropy_add_source(
-			&entropy_context,
-			entropy_hw_random_source,
-			ENTROPY_FUNCTION_DATA,
-			ENTROPY_MINIMUM_REQUIRED_THRESHOLD,
-			MBEDTLS_ENTROPY_SOURCE_STRONG);
-	if (mbedtls_err != 0) {
-		ESP_LOGE(TAG, "mbedtls_entropy_add_source: %i", mbedtls_err);
-		err = ESP_ERR_HW_CRYPTO_BASE;
-		goto fail;
-	}
-	mbedtls_err = mbedtls_ctr_drbg_seed(
-			&random_context,
-			mbedtls_entropy_func,
-			&entropy_context,
-			ENTROPY_CUSTOM_DATA,
-			ENTROPY_CUSTOM_DATA_LENGTH);
-	if (mbedtls_err != 0) {
-		ESP_LOGE(TAG, "mbedtls_ctr_drbg_seed: %i", mbedtls_err);
-		err = ESP_ERR_INVALID_CRC;
-		goto fail;
-	}
-	err = ESP_OK;
-fail:
-	return err;
+	esp_fill_random(rng_key, sizeof(rng_key));
+	return ESP_OK;
 }
 
 void wireguard_random_bytes(void *bytes, size_t size) {
-	mbedtls_ctr_drbg_random(&random_context, bytes, size);
+	uint8_t *out = (uint8_t *)bytes;
+
+	while (size > 0) {
+		struct chacha20_ctx ctx;
+		uint8_t block[CHACHA20_BLOCK_SIZE];
+		static const uint8_t zeros[CHACHA20_BLOCK_SIZE] = {0};
+		uint8_t hw[CHACHA20_KEY_SIZE];
+		size_t chunk;
+
+		/* Reseed: mix fresh hardware entropy into the key. */
+		esp_fill_random(hw, sizeof(hw));
+		for (int i = 0; i < CHACHA20_KEY_SIZE; i++) {
+			rng_key[i] ^= hw[i];
+		}
+
+		/* Generate one 64-byte keystream block. */
+		chacha20_init(&ctx, rng_key, rng_counter++);
+		chacha20(&ctx, block, zeros, sizeof(block));
+
+		/* Key erasure: first 32 bytes become the new key (forward secrecy). */
+		memcpy(rng_key, block, CHACHA20_KEY_SIZE);
+
+		/* Output: second 32 bytes. */
+		chunk = size < CHACHA20_KEY_SIZE ? size : CHACHA20_KEY_SIZE;
+		memcpy(out, block + CHACHA20_KEY_SIZE, chunk);
+		out  += chunk;
+		size -= chunk;
+
+		crypto_zero(block, sizeof(block));
+		crypto_zero(hw, sizeof(hw));
+		crypto_zero(&ctx, sizeof(ctx));
+	}
 }
 
 uint32_t wireguard_sys_now() {

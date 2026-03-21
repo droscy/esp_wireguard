@@ -36,9 +36,6 @@
 #include <inttypes.h>
 
 #include "lwip/sys.h"
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
-#include "mbedtls/version.h"
 
 #if defined(ESP8266) && !defined(IDF_VER)
 #include <osapi.h>
@@ -50,15 +47,30 @@
 #include <esp_system.h>
 #endif // defined(ESP8266) && !defined(IDF_VER)
 
+#if __has_include("mbedtls/build_info.h")
+#include "mbedtls/build_info.h"
+#else
+#include "mbedtls/version.h"
+#endif
+#if MBEDTLS_VERSION_NUMBER >= 0x04000000
+// mbedtls 4.0 removed entropy.h and ctr_drbg.h; use PSA crypto API
+#include "psa/crypto.h"
+#else
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+#endif
+
 #include "esp_wireguard_err.h"
 #include "esp_wireguard_log.h"
 #include "crypto.h"
 
+#define TAG "wireguard-platform"
+
+#if MBEDTLS_VERSION_NUMBER < 0x04000000
 #define ENTROPY_MINIMUM_REQUIRED_THRESHOLD	(134)
 #define ENTROPY_FUNCTION_DATA	NULL
 #define ENTROPY_CUSTOM_DATA		NULL
 #define ENTROPY_CUSTOM_DATA_LENGTH (0)
-#define TAG "wireguard-platform"
 
 #if MBEDTLS_VERSION_NUMBER >= 0x020D0000
 static struct mbedtls_ctr_drbg_context random_context;
@@ -73,8 +85,16 @@ static int entropy_hw_random_source( void *data, unsigned char *output, size_t l
 	*olen = len;
 	return 0;
 }
+#endif // MBEDTLS_VERSION_NUMBER < 0x04000000
 
 esp_err_t wireguard_platform_init() {
+#if MBEDTLS_VERSION_NUMBER >= 0x04000000
+	psa_status_t status = psa_crypto_init();
+	if (status != PSA_SUCCESS) {
+		ESP_LOGE(TAG, "psa_crypto_init failed: %d", (int) status);
+		return ESP_FAIL;
+	}
+#else
 	int mbedtls_err;
 	esp_err_t err;
 
@@ -105,10 +125,15 @@ esp_err_t wireguard_platform_init() {
 	err = ESP_OK;
 fail:
 	return err;
+#endif
 }
 
 void wireguard_random_bytes(void *bytes, size_t size) {
+#if MBEDTLS_VERSION_NUMBER >= 0x04000000
+	psa_generate_random((uint8_t *) bytes, size);
+#else
 	mbedtls_ctr_drbg_random(&random_context, bytes, size);
+#endif
 }
 
 uint32_t wireguard_sys_now() {

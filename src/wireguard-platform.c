@@ -32,7 +32,7 @@
 #include "wireguard-platform.h"
 
 #include <stdlib.h>
-#include <time.h>
+#include <sys/time.h>
 #include <inttypes.h>
 
 #include "lwip/sys.h"

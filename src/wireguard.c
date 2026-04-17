@@ -47,12 +47,25 @@
 // For HMAC calculation
 #define WIREGUARD_BLAKE2S_BLOCK_SIZE (64)
 
+// Fallback for compilers without __attribute__((nonstring))
+#ifndef NONSTRING_ATTR
+  #if defined(__has_attribute) && __has_attribute(nonstring)
+    #define NONSTRING_ATTR __attribute__((nonstring))
+  #else
+    #define NONSTRING_ATTR
+  #endif
+#endif
+
+// Macro for constant messages
+#define U8_ARRAY_FROM_STR(name, str)                                   \
+  static const uint8_t name[sizeof(str) - 1] NONSTRING_ATTR = str;
+
 // 5.4 Messages
 // Constants
-static const uint8_t CONSTRUCTION[37] = "Noise_IKpsk2_25519_ChaChaPoly_BLAKE2s"; // The UTF-8 string literal "Noise_IKpsk2_25519_ChaChaPoly_BLAKE2s", 37 bytes of output
-static const uint8_t IDENTIFIER[34] = "WireGuard v1 zx2c4 Jason@zx2c4.com"; // The UTF-8 string literal "WireGuard v1 zx2c4 Jason@zx2c4.com", 34 bytes of output
-static const uint8_t LABEL_MAC1[8] = "mac1----"; // Label-Mac1 The UTF-8 string literal "mac1----", 8 bytes of output.
-static const uint8_t LABEL_COOKIE[8] = "cookie--"; // Label-Cookie The UTF-8 string literal "cookie--", 8 bytes of output
+U8_ARRAY_FROM_STR(CONSTRUCTION, "Noise_IKpsk2_25519_ChaChaPoly_BLAKE2s");
+U8_ARRAY_FROM_STR(IDENTIFIER,  "WireGuard v1 zx2c4 Jason@zx2c4.com");
+U8_ARRAY_FROM_STR(LABEL_MAC1,  "mac1----");
+U8_ARRAY_FROM_STR(LABEL_COOKIE,"cookie--");
 
 static const char *base64_lookup = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 

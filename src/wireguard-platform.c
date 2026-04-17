@@ -94,6 +94,7 @@ esp_err_t wireguard_platform_init() {
 		ESP_LOGE(TAG, "psa_crypto_init failed: %d", (int) status);
 		return ESP_FAIL;
 	}
+	return ESP_OK;
 #else
 	int mbedtls_err;
 	esp_err_t err;

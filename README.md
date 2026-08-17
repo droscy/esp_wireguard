@@ -5,13 +5,23 @@ for [ESPHome](https://esphome.io/), based on
 [Wireguard Implementation for ESP-IDF](https://github.com/trombik/esp_wireguard)
 (by [@trombik](https://github.com/trombik)).
 
-[![PlatformIO Registry](https://badges.registry.platformio.org/packages/droscy/library/esp_wireguard.svg)](https://registry.platformio.org/libraries/droscy/esp_wireguard)
+[![PlatformIO Registry](https://badges.registry.platformio.org/packages/esphome/library/wireguard.svg)](https://registry.platformio.org/libraries/esphome/wireguard)
 
 
 ## Usage
 
 Please refer to the official documentation of [WireGuard Component](https://esphome.io/components/wireguard)
 in ESPHome website.
+
+The library is published to the PlatformIO Registry as `esphome/wireguard`:
+
+```ini
+lib_deps = esphome/wireguard
+```
+
+> **Note:** this library was previously named `esp_wireguard` and published as
+> `droscy/esp_wireguard`. Only the package and repository names changed; the C API
+> (`esp_wireguard.h`, `esp_wireguard_init()`, ...) is unchanged.
 
 
 ## Compatibility
@@ -31,6 +41,8 @@ For additional information see:
 * the first pull-request [esphome/esphome#4256](https://github.com/esphome/esphome/pull/4256)
 * `esp8266` support [esphome/esphome#6365](https://github.com/esphome/esphome/pull/6365)
 * LibreTiny support [droscy/esp_wireguard#4](https://github.com/droscy/esp_wireguard/pull/4)
+  (in the repository this library was forked from, before the move to
+  [esphome-libs/wireguard](https://github.com/esphome-libs/wireguard))
 
 
 ## License

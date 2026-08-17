@@ -9,3 +9,4 @@ files:
   exclude:
     - ".github/**/*"
     - "TODO.md"
+    - "tests/**/*"

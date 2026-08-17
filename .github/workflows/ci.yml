@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - dev
+
+permissions: {}
+
+jobs:
+  esp-idf:
+    name: ESP-IDF build (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - esp32
+          - esp32s3
+          - esp32c3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Builds tests/idf, which pulls the repository root in as a component.
+      # This covers the idf_component_register() branch of CMakeLists.txt and
+      # the idf_component.yml manifest: the component manager resolves the
+      # declared esphome/libsodium dependency from the registry while
+      # configuring, and the link step then fails if it did not.
+      - name: Build the compile test for ${{ matrix.target }}
+        uses: espressif/esp-idf-ci-action@e6f5c74232b1ccd4c97ed641f1e48553853f1fd5 # v1.2.0
+        with:
+          esp_idf_version: v5.5.5
+          target: ${{ matrix.target }}
+          path: tests/idf
+
+  cmake:
+    name: CMake consumer configure
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # These steps configure only, and deliberately never build. The sources
+      # need lwip, mbedtls and libsodium headers, none of which a stock runner
+      # has, so compiling them off-target is not achievable without stubbing
+      # out most of an RTOS. What tests/cmake does check is the part this
+      # repository owns: that add_subdirectory() defines the documented
+      # targets, that the advertised include dirs really contain the public
+      # headers, and that the optional sodium link is guarded correctly.
+      - name: Configure with no sodium target present (configure only, no compile)
+        run: cmake -S tests/cmake -B "${RUNNER_TEMP}/cmake-without-sodium"
+
+      - name: Configure with a sodium target present (configure only, no compile)
+        run: >
+          cmake -S tests/cmake -B "${RUNNER_TEMP}/cmake-with-sodium"
+          -DWIREGUARD_TEST_WITH_SODIUM=ON
+
+  component-manifest:
+    name: Component manifest
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+
+      # Packing is what the release workflow's upload step does to
+      # idf_component.yml, so doing it here catches a malformed manifest or a
+      # broken files.exclude rule on the pull request instead of at release
+      # time.
+      #
+      # The version is pinned to the one espressif/upload-components-ci-action
+      # resolves in its own lockfile, so this job packs with the same code the
+      # release actually publishes with. Bump it together with that action's
+      # pin in publish.yml; left unpinned it floats to the latest release,
+      # which is currently two major versions ahead of the publisher.
+      - name: Pack the component
+        run: >
+          uv run --no-project --with 'idf-component-manager==2.4.0'
+          compote component pack --name wireguard
+
+      - name: Check the excluded paths are absent from the archive
+        run: .github/scripts/check_component_archive.sh

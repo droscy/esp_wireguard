@@ -24,6 +24,35 @@ lib_deps = esphome/wireguard
 > (`esp_wireguard.h`, `esp_wireguard_init()`, ...) is unchanged.
 
 
+### ESP-IDF component
+
+The library is also published to the [ESP Component Registry](https://components.espressif.com/components/esphome/wireguard)
+as `esphome/wireguard`, so an ESP-IDF project can add it with:
+
+```console
+idf.py add-dependency "esphome/wireguard"
+```
+
+The `esphome/libsodium` dependency is declared in `idf_component.yml` and is
+resolved by the component manager.
+
+
+### Plain CMake
+
+Outside of ESP-IDF, `CMakeLists.txt` defines an ordinary static library target,
+so any CMake project can consume it directly:
+
+```cmake
+add_subdirectory(path/to/wireguard)
+target_link_libraries(my_target PRIVATE esphome::wireguard)
+```
+
+The target is named `wireguard`, with `esphome::wireguard` as an alias. Include
+directories and the warning suppressions are carried on the target; lwip,
+mbedtls and libsodium are the consuming project's to provide. If a `sodium`
+target already exists it is linked automatically.
+
+
 ## Compatibility
 
 This code targets only ESPHome and has been tested on the following platforms:

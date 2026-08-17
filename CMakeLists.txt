@@ -32,7 +32,13 @@ if(ESP_PLATFORM)
 else()
   # Generic CMake build, for consumers that pull this repo in with
   # add_subdirectory().
-  cmake_minimum_required(VERSION 3.13)
+  #
+  # Guarded: from a subdirectory this would reset policy settings for this
+  # scope to the 3.13 baseline, overriding whatever the consuming project
+  # selected with its own, newer cmake_minimum_required().
+  if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    cmake_minimum_required(VERSION 3.13)
+  endif()
 
   add_library(wireguard STATIC ${WIREGUARD_SRCS})
   add_library(esphome::wireguard ALIAS wireguard)

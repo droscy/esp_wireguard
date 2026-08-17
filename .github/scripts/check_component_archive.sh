@@ -33,9 +33,11 @@ if ! contents=$(tar -tzf "${archive}"); then
     exit 1
 fi
 
-# tar entries may or may not carry a leading "./", so compare on a normalised
-# copy rather than on the raw listing.
-normalised=$(printf '%s\n' "${contents}" | sed 's|^\./||')
+# Entry naming differs between packer versions: 2.5.0 and later prefix every
+# member with "./", while 2.4.0 writes them bare with a "/" root entry. Compare
+# on a normalised copy so the checks below hold either way, and so an absolute
+# member can never sidestep a prefix rule.
+normalised=$(printf '%s\n' "${contents}" | sed 's|^\./||; s|^/||')
 
 status=0
 

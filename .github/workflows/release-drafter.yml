@@ -1,0 +1,50 @@
+name: Release Drafter
+
+on:
+  push:
+    branches:
+      - dev
+
+permissions: {}
+
+jobs:
+  release-drafter:
+    name: Release Drafter
+    environment: release-drafter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.ESPHOME_GITHUB_APP_CLIENT_ID }}
+          private-key: ${{ secrets.ESPHOME_GITHUB_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          token: ${{ steps.generate-token.outputs.token }}
+
+      - uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v7.7.0
+        id: drafter
+        env:
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+
+      # library.json has several "version" keys - the library's own, plus one
+      # per entry in "dependencies". Only the first line matching is rewritten
+      # so the dependency constraints are left alone.
+      - name: Update version files
+        env:
+          RESOLVED_VERSION: ${{ steps.drafter.outputs.resolved_version }}
+        run: |
+          sed -i "0,/\"version\":/s/^\( *\)\"version\": .*/\1\"version\": \"${RESOLVED_VERSION}\",/" library.json
+
+      - name: Commit changes
+        env:
+          RESOLVED_VERSION: ${{ steps.drafter.outputs.resolved_version }}
+        run: |
+          if ! git diff --quiet; then
+            git config --global user.name "esphome-libs[bot]"
+            git config --global user.email "272321744+esphome-libs[bot]@users.noreply.github.com"
+            git commit -am "Bump version to ${RESOLVED_VERSION}"
+            git push
+          fi

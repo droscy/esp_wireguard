@@ -6,3 +6,10 @@
 /build/
 /dist/
 *.tar.gz
+
+# Build output of the projects under tests/
+build/
+managed_components/
+dependencies.lock
+sdkconfig
+sdkconfig.old

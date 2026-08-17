@@ -73,6 +73,31 @@ This code targets only ESPHome and has been tested on the following platforms:
 * LibreTiny (with `bk72` microcontrollers only)
 
 
+## Tests
+
+`tests/` holds two compile tests for the build files, both run by CI on every
+pull request:
+
+* `tests/idf` is a minimal ESP-IDF project that pulls the repository root in as
+  a component and calls into `esp_wireguard.h`. It covers `CMakeLists.txt` and
+  `idf_component.yml` together: the component manager resolves the declared
+  `esphome/libsodium` dependency from the registry while configuring, and the
+  link step fails if it did not. Build it with `idf.py -C tests/idf build`
+  after running ESP-IDF's `export` script.
+
+* `tests/cmake` is a consumer project for the plain CMake path. It only
+  configures and never compiles, because as described above that branch is not
+  a portable host build: the sources expect lwip, mbedtls, libsodium and an
+  ESP-family SDK, none of which a stock host has. It checks what this
+  repository is responsible for, which is that `add_subdirectory()` defines the
+  documented targets, that the advertised include dirs contain the public
+  headers, and that the optional `sodium` link is guarded correctly.
+
+  ```console
+  cmake -S tests/cmake -B build/cmake-test
+  ```
+
+
 ## References
 
 For additional information see:

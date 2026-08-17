@@ -25,3 +25,34 @@ jobs:
         env:
           PLATFORMIO_AUTH_TOKEN: ${{ secrets.PLATFORMIO_AUTH_TOKEN }}
         run: pio package publish --owner esphome --non-interactive
+
+  publish-espressif:
+    name: Publish to Espressif
+    runs-on: ubuntu-latest
+    environment: espressif
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The registry requires a bare semver version, and this repo's release
+      # tags carry a v prefix. The action only strips it in its `git` mode,
+      # so strip it here and pass the version explicitly.
+      - name: Resolve version
+        id: version
+        env:
+          TAG_NAME: ${{ github.event.release.tag_name }}
+        run: |
+          version="${TAG_NAME#v}"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?([+][0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Release tag '${TAG_NAME}' is not a version the component registry will accept."
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+      - name: Publish package
+        uses: espressif/upload-components-ci-action@2ce17d73e35473317c1419dbd4f007aacb593040 # v2.2.1
+        with:
+          version: ${{ steps.version.outputs.version }}
+          components: |
+            wireguard: .
+          namespace: esphome

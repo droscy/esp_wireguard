@@ -49,8 +49,11 @@ excluded_files=(
     "TODO.md"
 )
 
+# Both loops match literally rather than as regexes. Every pattern here
+# contains a ".", which as a regex would match any character: "^TODO.md" also
+# matches "TODOxmd", and "^.github/" also matches "xgithub/".
 for prefix in "${excluded_prefixes[@]}"; do
-    matches=$(printf '%s\n' "${normalised}" | grep "^${prefix}" || true)
+    matches=$(printf '%s\n' "${normalised}" | awk -v p="${prefix}" 'index($0, p) == 1' || true)
     if [ -n "${matches}" ]; then
         echo "::error::${prefix} should be excluded but the archive contains:"
         printf '%s\n' "${matches}" | sed 's/^/  /'
@@ -59,7 +62,7 @@ for prefix in "${excluded_prefixes[@]}"; do
 done
 
 for file in "${excluded_files[@]}"; do
-    if printf '%s\n' "${normalised}" | grep -qx "${file}"; then
+    if printf '%s\n' "${normalised}" | grep -Fxq "${file}"; then
         echo "::error::${file} should be excluded but is present in the archive"
         status=1
     fi
@@ -76,7 +79,7 @@ required_files=(
 )
 
 for file in "${required_files[@]}"; do
-    if ! printf '%s\n' "${normalised}" | grep -qx "${file}"; then
+    if ! printf '%s\n' "${normalised}" | grep -Fxq "${file}"; then
         echo "::error::${file} is missing from the archive"
         status=1
     fi

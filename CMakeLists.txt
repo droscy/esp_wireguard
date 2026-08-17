@@ -46,11 +46,18 @@ else()
 
   target_compile_options(wireguard PRIVATE ${WIREGUARD_COMPILE_OPTIONS})
 
+  # This branch is not a portable host build: unless the consumer is building
+  # for ESP8266 (non-IDF) or LibreTiny, which esp_wireguard_err.h and
+  # esp_wireguard_log.h have fallbacks for, the sources still expect the
+  # ESP-IDF headers esp_err.h, esp_log.h, esp_system.h and esp_netif.h. It
+  # exists for toolchains such as LibreTiny that drive CMake themselves; an
+  # ESP-IDF project should use the component build above instead.
+  #
   # crypto.h pulls in <sodium.h> for crypto_scalarmult_curve25519(), so link a
-  # libsodium target if the consumer has already defined one. lwip and mbedtls
-  # are likewise the consumer's to provide; outside ESP-IDF there is no single
-  # canonical target name for either, so they are left to the consumer's
-  # include path and link line.
+  # libsodium target if the consumer has already defined one. lwip, mbedtls and
+  # the platform headers are the consumer's to provide; outside ESP-IDF there
+  # is no canonical target name for any of them, so they are left to the
+  # consumer's include path and link line.
   if(TARGET sodium)
     target_link_libraries(wireguard PUBLIC sodium)
   endif()

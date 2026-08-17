@@ -40,7 +40,7 @@ resolved by the component manager.
 ### Plain CMake
 
 Outside of ESP-IDF, `CMakeLists.txt` defines an ordinary static library target,
-so any CMake project can consume it directly:
+so a CMake project can consume it with `add_subdirectory()`:
 
 ```cmake
 add_subdirectory(path/to/wireguard)
@@ -48,9 +48,20 @@ target_link_libraries(my_target PRIVATE esphome::wireguard)
 ```
 
 The target is named `wireguard`, with `esphome::wireguard` as an alias. Include
-directories and the warning suppressions are carried on the target; lwip,
-mbedtls and libsodium are the consuming project's to provide. If a `sodium`
-target already exists it is linked automatically.
+directories and the warning suppressions are carried on the target.
+
+This is not a portable host build. The sources still expect an ESP-family SDK,
+so the consuming project has to put the following on the include path itself:
+
+* lwip, mbedtls and libsodium (if a `sodium` target already exists it is linked
+  automatically, otherwise link your own);
+* unless building for ESP8266 (non-IDF) or LibreTiny, which have their own
+  fallbacks in `esp_wireguard_err.h` and `esp_wireguard_log.h`, the ESP-IDF
+  headers `esp_err.h`, `esp_log.h`, `esp_system.h` and `esp_netif.h`.
+
+In other words, this branch of the build exists for toolchains such as
+LibreTiny and the ESP8266 SDK that drive CMake themselves; an ESP-IDF project
+should use the component build above rather than `add_subdirectory()`.
 
 
 ## Compatibility

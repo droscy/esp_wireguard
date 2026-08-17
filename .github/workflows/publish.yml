@@ -42,7 +42,13 @@ jobs:
         id: version
         env:
           TAG_NAME: ${{ github.event.release.tag_name }}
-        run: echo "version=${TAG_NAME#v}" >> "$GITHUB_OUTPUT"
+        run: |
+          version="${TAG_NAME#v}"
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)*$ ]]; then
+            echo "::error::Release tag '${TAG_NAME}' is not a version the component registry will accept."
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
       - name: Publish package
         uses: espressif/upload-components-ci-action@2ce17d73e35473317c1419dbd4f007aacb593040 # v2.2.1
         with:

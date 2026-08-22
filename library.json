@@ -1,6 +1,6 @@
 {
-   "name": "esp_wireguard",
-   "version": "0.4.2",
+   "name": "wireguard",
+   "version": "0.4.6",
    "description": "WireGuard implementation for ESPHome",
    "keywords":[
       "esphome",
@@ -11,9 +11,10 @@
    ],
    "repository":{
       "type": "git",
-      "url": "https://github.com/droscy/esp_wireguard",
+      "url": "https://github.com/esphome-libs/wireguard.git",
       "branch": "main"
    },
+   "homepage": "https://github.com/esphome-libs/wireguard",
    "authors":[
       {
          "name": "Simone Rossetto",

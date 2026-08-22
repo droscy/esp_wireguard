@@ -1,0 +1,12 @@
+description: WireGuard implementation for ESPHome
+version: "0.4.6"
+url: https://github.com/esphome-libs/wireguard
+repository: https://github.com/esphome-libs/wireguard.git
+license: BSD-3-Clause
+dependencies:
+  esphome/libsodium: "^1.10021.1"
+files:
+  exclude:
+    - ".github/**/*"
+    - "TODO.md"
+    - "tests/**/*"

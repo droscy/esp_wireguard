@@ -1011,10 +1011,10 @@ err_t wireguardif_init(struct netif *netif) {
 		if (wireguard_base64_decode(init_data->private_key, private_key, &private_key_len)
 				&& (private_key_len == WIREGUARD_PRIVATE_KEY_LEN)) {
 
-			udp = udp_new();
+			udp = udp_new_ip_type(IPADDR_TYPE_ANY);
 
 			if (udp) {
-				result = udp_bind(udp, IP_ADDR_ANY, init_data->listen_port); // Note this listens on all interfaces! Really just want the passed netif
+				result = udp_bind(udp, IP_ANY_TYPE, init_data->listen_port); // Note this listens on all interfaces! Really just want the passed netif
 				if (result == ERR_OK) {
 					device = (struct wireguard_device *)mem_calloc(1, sizeof(struct wireguard_device));
 					if (device) {
